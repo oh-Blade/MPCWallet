@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MPC钱包</string>
+    
+    <!-- 主界面 -->
+    <string name="wallet_title">MPC钱包</string>
+    <string name="total_balance">总余额</string>
+    <string name="send">发送</string>
+    <string name="receive">接收</string>
+    <string name="my_wallets">我的钱包</string>
+    <string name="no_wallets_title">还没有钱包</string>
+    <string name="no_wallets_description">点击右下角的 + 按钮创建您的第一个MPC钱包</string>
+    
+    <!-- 钱包操作 -->
+    <string name="create_wallet">创建钱包</string>
+    <string name="scan_qr">扫描二维码</string>
+    <string name="copy_address">复制地址</string>
+    <string name="refresh_balance">刷新余额</string>
+    <string name="address">地址</string>
+    <string name="threshold">阈值</string>
+    <string name="backed_up">已备份</string>
+    <string name="not_backed_up">未备份</string>
+    
+    <!-- 链名称 -->
+    <string name="ethereum">以太坊</string>
+    <string name="bitcoin">比特币</string>
+    <string name="polygon">Polygon</string>
+    <string name="bsc">币安智能链</string>
+    
+    <!-- 密钥生成 -->
+    <string name="key_generation_title">创建MPC钱包</string>
+    <string name="key_generation_in_progress">密钥生成功能正在开发中</string>
+    <string name="key_generation_description">此功能将允许您与其他参与方一起生成MPC钱包</string>
+    <string name="scan_to_join_keygen">扫描QR码参与密钥生成</string>
+    
+    <!-- 交易 -->
+    <string name="transaction_title">发送交易</string>
+    <string name="transaction_in_progress">MPC交易功能正在开发中</string>
+    <string name="transaction_description">此功能将允许您创建交易并通过MPC多方签名</string>
+    <string name="scan_to_sign">扫描QR码参与交易签名</string>
+    
+    <!-- QR扫描 -->
+    <string name="qr_scan_title">扫描二维码</string>
+    <string name="qr_scan_in_progress">QR码扫描功能正在开发中</string>
+    <string name="qr_scan_description">此功能将允许您扫描其他设备的QR码进行MPC通信</string>
+    
+    <!-- 设置 -->
+    <string name="settings_title">设置</string>
+    <string name="settings_in_progress">设置功能正在开发中</string>
+    <string name="settings_description">此处将包含网络设置、安全选项等配置</string>
+    
+    <!-- 通用 -->
+    <string name="back">返回</string>
+    <string name="settings">设置</string>
+    <string name="loading">加载中…</string>
+    <string name="error">错误</string>
+    <string name="success">成功</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
+    
+    <!-- 错误信息 -->
+    <string name="error_load_wallets">加载钱包失败</string>
+    <string name="error_get_balance">获取余额失败</string>
+    <string name="error_refresh_balance">刷新余额失败</string>
+    <string name="error_network">网络错误</string>
+    <string name="error_invalid_address">无效地址</string>
+    
+    <!-- MPC相关 -->
+    <string name="mpc_wallet">MPC钱包</string>
+    <string name="multi_party_computation">多方计算</string>
+    <string name="threshold_signature">阈值签名</string>
+    <string name="key_share">密钥分片</string>
+    <string name="signature_share">签名分片</string>
+</resources> 
