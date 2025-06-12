@@ -1,0 +1,285 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* 自定义全局样式 */
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* 卡片阴影效果 */
+.custom-card {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 玻璃态效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* 渐变按钮 */
+.gradient-button {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  font-weight: 500;
+}
+
+.gradient-button:hover {
+  background: linear-gradient(45deg, #5a6fd8 0%, #6a4190 100%);
+  color: white;
+}
+
+/* 动画效果 */
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* 加载动画 */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .content-container {
+    padding: 10px;
+  }
+  
+  .ant-col {
+    margin-bottom: 16px;
+  }
+}
+
+/* 自定义状态颜色 */
+.status-pending {
+  color: #faad14;
+}
+
+.status-success {
+  color: #52c41a;
+}
+
+.status-error {
+  color: #ff4d4f;
+}
+
+.status-warning {
+  color: #fa8c16;
+}
+
+/* 钱包地址显示 */
+.wallet-address {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+/* 交易哈希显示 */
+.tx-hash {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  color: #666;
+  word-break: break-all;
+}
+
+/* 金额显示 */
+.amount-display {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.amount-eth {
+  color: #667eea;
+}
+
+/* JSON 数据显示 */
+.json-display {
+  background: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 12px;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* 步骤指示器 */
+.step-indicator {
+  margin-bottom: 24px;
+}
+
+.step-indicator .ant-steps-item-process .ant-steps-item-icon {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+}
+
+/* 工具提示 */
+.tooltip-content {
+  max-width: 300px;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+/* 二维码容器 */
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+}
+
+/* 复制成功提示 */
+.copy-success {
+  color: #52c41a;
+}
+
+/* 网络状态指示器 */
+.network-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.network-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #52c41a;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(82, 196, 26, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+  }
+}
+
+/* 高亮效果 */
+.highlight {
+  background: linear-gradient(45deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
+/* 危险操作确认 */
+.danger-action {
+  color: #ff4d4f;
+  border-color: #ff4d4f;
+}
+
+.danger-action:hover {
+  background: #ff4d4f;
+  color: white;
+}
+
+/* 成功状态 */
+.success-status {
+  color: #52c41a;
+  background: rgba(82, 196, 26, 0.1);
+  border: 1px solid rgba(82, 196, 26, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+/* 错误状态 */
+.error-status {
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.1);
+  border: 1px solid rgba(255, 77, 79, 0.3);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+} 

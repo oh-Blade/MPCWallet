@@ -1,0 +1,287 @@
+.app-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.content-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Header 样式 */
+.app-header {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 20px;
+}
+
+.app-header .ant-layout-header {
+  background: transparent;
+  padding: 0;
+}
+
+/* 导航菜单样式 */
+.app-nav {
+  background: transparent;
+  border-bottom: none;
+}
+
+.app-nav .ant-menu-item {
+  color: rgba(255, 255, 255, 0.8);
+  border-bottom: 2px solid transparent;
+}
+
+.app-nav .ant-menu-item:hover {
+  color: white;
+  border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+
+.app-nav .ant-menu-item-selected {
+  color: white;
+  border-bottom-color: white;
+  background: transparent;
+}
+
+/* 页面容器 */
+.page-container {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 24px;
+  margin: 20px 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* 卡片容器 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 24px;
+  margin: 16px 0;
+}
+
+/* 钱包卡片 */
+.wallet-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.wallet-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* 交易状态指示器 */
+.transaction-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.transaction-status.pending {
+  background: rgba(250, 173, 20, 0.1);
+  color: #faad14;
+  border: 1px solid rgba(250, 173, 20, 0.3);
+}
+
+.transaction-status.success {
+  background: rgba(82, 196, 26, 0.1);
+  color: #52c41a;
+  border: 1px solid rgba(82, 196, 26, 0.3);
+}
+
+.transaction-status.failed {
+  background: rgba(255, 77, 79, 0.1);
+  color: #ff4d4f;
+  border: 1px solid rgba(255, 77, 79, 0.3);
+}
+
+/* MPC 数据显示 */
+.mpc-data-container {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.mpc-data-json {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  background: #ffffff;
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* 复制按钮 */
+.copy-button {
+  margin-left: 8px;
+}
+
+.copy-button.copied {
+  color: #52c41a;
+}
+
+/* 步骤指示器 */
+.mpc-steps {
+  margin: 24px 0;
+}
+
+.mpc-steps .ant-steps-item-process .ant-steps-item-icon {
+  background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+}
+
+/* 网络状态 */
+.network-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.network-status.connected {
+  color: #52c41a;
+}
+
+.network-status.disconnected {
+  color: #ff4d4f;
+}
+
+/* 余额显示 */
+.balance-display {
+  font-size: 24px;
+  font-weight: 600;
+  color: #667eea;
+  margin: 8px 0;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+/* 地址显示 */
+.address-display {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+  word-break: break-all;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 加载状态 */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  z-index: 1000;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 64px;
+  color: #ddd;
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #666;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 24px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .content-container {
+    padding: 10px;
+  }
+  
+  .page-container {
+    margin: 10px 0;
+    padding: 16px;
+  }
+  
+  .glass-card {
+    padding: 16px;
+    margin: 12px 0;
+  }
+  
+  .balance-display {
+    font-size: 20px;
+  }
+  
+  .address-display {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 0 10px;
+  }
+  
+  .mpc-data-json {
+    font-size: 10px;
+    padding: 8px;
+  }
+  
+  .transaction-status {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+} 
