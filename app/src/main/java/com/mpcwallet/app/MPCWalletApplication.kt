@@ -15,10 +15,15 @@ import com.mpcwallet.app.utils.QRCodeManager
 class MPCWalletApplication : Application() {
     
     companion object {
-        // 这里应该安全地存储您的Infura密钥
-        // 在生产环境中，请使用更安全的方式管理API密钥
-        // 临时使用测试密钥，请替换为您自己的Infura项目ID
-        private const val INFURA_KEY = "demo"  // 请替换为真实的Infura项目ID
+        // 从BuildConfig读取配置，支持不同环境
+        val INFURA_KEY: String = BuildConfig.INFURA_API_KEY
+        val INFURA_PROJECT_ID: String = BuildConfig.INFURA_PROJECT_ID  
+        val DEFAULT_NETWORK: String = BuildConfig.DEFAULT_NETWORK
+        val ENABLE_DEBUG_LOGGING: Boolean = BuildConfig.ENABLE_DEBUG_LOGGING
+        val ENABLE_BIOMETRIC: Boolean = BuildConfig.ENABLE_BIOMETRIC
+        val MIN_PASSWORD_LENGTH: Int = BuildConfig.MIN_PASSWORD_LENGTH
+        val BUILD_TYPE: String = BuildConfig.BUILD_TYPE_NAME
+        val API_BASE_URL: String = BuildConfig.API_BASE_URL
     }
     
     // 数据库实例
@@ -46,8 +51,13 @@ class MPCWalletApplication : Application() {
         // 初始化安全提供者
         initializeSecurity()
         
-        // 其他初始化逻辑
+        // 初始化应用程序
         initializeApplication()
+        
+        // 打印配置信息（仅在调试模式）
+        if (ENABLE_DEBUG_LOGGING) {
+            logConfiguration()
+        }
     }
     
     private fun initializeSecurity() {
@@ -58,6 +68,20 @@ class MPCWalletApplication : Application() {
     private fun initializeApplication() {
         // 应用程序级别的初始化
         // 例如：日志记录、崩溃报告等
+    }
+    
+    private fun logConfiguration() {
+        android.util.Log.d("MPCWallet", """
+            |=== MPC Wallet Configuration ===
+            |Build Type: $BUILD_TYPE
+            |Default Network: $DEFAULT_NETWORK  
+            |API Base URL: $API_BASE_URL
+            |Debug Logging: $ENABLE_DEBUG_LOGGING
+            |Biometric Enabled: $ENABLE_BIOMETRIC
+            |Min Password Length: $MIN_PASSWORD_LENGTH
+            |Infura Key: ${INFURA_KEY.take(8)}...
+            |================================
+        """.trimMargin())
     }
     
     override fun onTerminate() {

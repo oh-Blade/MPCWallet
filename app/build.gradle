@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace 'com.mpcwallet.app'
-    compileSdk 34
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.mpcwallet.app"
         minSdk 24
-        targetSdk 34
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -20,18 +20,50 @@ android {
         vectorDrawables {
             useSupportLibrary true
         }
+        
+        // 从配置文件读取API密钥和配置
+        buildConfigField "String", "INFURA_API_KEY", "\"${project.findProperty('INFURA_API_KEY') ?: 'demo_key'}\""
+        buildConfigField "String", "INFURA_PROJECT_ID", "\"${project.findProperty('INFURA_PROJECT_ID') ?: 'demo_project'}\""
+        buildConfigField "String", "DEFAULT_NETWORK", "\"${project.findProperty('DEFAULT_NETWORK') ?: 'sepolia'}\""
+        buildConfigField "boolean", "ENABLE_DEBUG_LOGGING", "${project.findProperty('ENABLE_DEBUG_LOGGING') ?: 'true'}"
+        buildConfigField "boolean", "ENABLE_BIOMETRIC", "${project.findProperty('ENABLE_BIOMETRIC') ?: 'true'}"
+        buildConfigField "int", "MIN_PASSWORD_LENGTH", "${project.findProperty('MIN_PASSWORD_LENGTH') ?: '8'}"
     }
 
     buildTypes {
-        release {
+        debug {
+            applicationIdSuffix ".debug"
+            debuggable true
             minifyEnabled false
+            
+            // 开发环境专用配置
+            buildConfigField "String", "BUILD_TYPE_NAME", "\"debug\""
+            buildConfigField "String", "API_BASE_URL", "\"https://sepolia.infura.io/v3/\""
+        }
+        
+        release {
+            minifyEnabled true
+            debuggable false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            
+            // 生产环境专用配置
+            buildConfigField "String", "BUILD_TYPE_NAME", "\"release\""
+            buildConfigField "String", "API_BASE_URL", "\"https://mainnet.infura.io/v3/\""
+        }
+        
+        staging {
+            initWith debug
+            applicationIdSuffix ".staging"
+            
+            // 测试环境配置
+            buildConfigField "String", "BUILD_TYPE_NAME", "\"staging\""
+            buildConfigField "String", "API_BASE_URL", "\"https://sepolia.infura.io/v3/\""
         }
     }
     
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     
     kotlinOptions {
@@ -41,6 +73,7 @@ android {
     buildFeatures {
         compose true
         dataBinding true
+        buildConfig true  // 启用BuildConfig生成
     }
     
     composeOptions {
