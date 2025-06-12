@@ -14,7 +14,7 @@
 ## 技术栈
 
 - **前端**: React, TypeScript, Ant Design
-- **后端**: Node.js, Express
+- **后端**: Node.js, Express (+ C++ 高性能版本)
 - **区块链**: Ethers.js, Infura
 - **密码学**: cb-mpc 库（通过 WebAssembly）
 - **状态管理**: React Context + Hooks
@@ -39,8 +39,14 @@ mpc-wallet-app/
 │   │   ├── routes/         # 路由
 │   │   └── utils/          # 工具函数
 │   └── index.js
+├── cpp_server/             # C++ 高性能后端服务 (新增)
+│   ├── mpc_server.cpp      # 主服务器实现
+│   ├── Makefile            # 构建配置
+│   ├── start.sh            # 启动脚本
+│   └── README.md           # 详细文档
 ├── docs/                   # 文档
-└── scripts/                # 构建脚本
+├── scripts/                # 构建脚本
+└── CPP_SERVER.md           # C++ 服务器说明
 ```
 
 ## 安装和运行
@@ -78,6 +84,17 @@ mpc-wallet-app/
    ```
 
    这将同时启动前端开发服务器 (http://localhost:3000) 和后端 API 服务器 (http://localhost:8080)
+
+### C++ 高性能服务器 (可选)
+
+如果需要更高性能的后端服务，可以使用 C++ 版本：
+
+```bash
+cd cpp_server
+make && ./mpc_wallet_server
+```
+
+详细信息请参考 [CPP_SERVER.md](CPP_SERVER.md)
 
 ### 生产环境部署
 
