@@ -89,4 +89,4 @@ fastlane/readme.md
 Thumbs.db
 
 # Test build directory
-test-build/ 
+test-build/ node_modules/
