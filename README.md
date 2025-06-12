@@ -1,248 +1,181 @@
-# MPC Wallet - 多方计算钱包
+# MPC 钱包应用
 
-一个基于Coinbase MPC技术的Android钱包应用，支持多方计算密钥生成和签名，通过二维码进行安全的设备间通信。
+基于 cb-mpc 库的多方计算钱包 Web 应用，支持以太坊网络的多方计算钱包创建、交易发起和签名。
 
 ## 功能特性
 
-### 🔐 多方计算 (MPC)
-- **阈值签名**: 支持 t-of-n 阈值签名方案
-- **密钥分片**: 使用Shamir秘密分享算法分割私钥
-- **无单点故障**: 没有任何一方能够单独控制私钥
+- 🔐 **多方计算钱包创建** - 支持 2-of-2 和多方阈值钱包
+- 💸 **交易发起与签名** - 支持以太坊网络交易
+- 🌐 **以太坊网络支持** - 集成 Infura 节点
+- 📱 **响应式 UI** - 现代化的用户界面
+- 🔄 **多方数据交互** - 弹窗形式展示交互数据（支持未来二维码扩展）
+- 🔒 **安全设计** - 基于 MPC 协议的安全多方计算
 
-### 📱 纯客户端架构
-- **离线操作**: 所有MPC计算都在本地进行
-- **无需服务器**: 不依赖于中心化服务器
-- **设备间通信**: 通过二维码进行数据传输
+## 技术栈
 
-### 🔗 多链支持
-- **以太坊** (Ethereum) - 通过Infura连接
-- **Polygon** - Layer 2 解决方案
-- **币安智能链** (BSC) - 兼容EVM
-- **比特币** (Bitcoin) - 基础支持
+- **前端**: React, TypeScript, Ant Design
+- **后端**: Node.js, Express
+- **区块链**: Ethers.js, Infura
+- **密码学**: cb-mpc 库（通过 WebAssembly）
+- **状态管理**: React Context + Hooks
 
-### 📲 二维码通信
-- **密钥生成**: 通过QR码协调多方密钥生成
-- **交易签名**: 扫描QR码参与交易签名过程
-- **数据分片**: 大数据自动分割为多个QR码
-
-## 技术架构
-
-### 核心组件
+## 项目结构
 
 ```
-app/
-├── crypto/              # 密码学组件
-│   ├── MPCKeyGenerator.kt   # MPC密钥生成器
-│   └── MPCSigner.kt         # MPC签名器
-├── network/             # 网络服务
-│   └── EthereumService.kt   # 以太坊网络接口
-├── utils/               # 工具类
-│   └── QRCodeManager.kt     # 二维码管理器
-├── data/                # 数据层
-│   ├── models/              # 数据模型
-│   └── database/            # 本地数据库
-└── ui/                  # 用户界面
-    ├── screens/             # 界面组件
-    └── components/          # 可复用组件
+mpc-wallet-app/
+├── client/                 # React 前端应用
+│   ├── src/
+│   │   ├── components/     # 组件
+│   │   ├── contexts/       # React Contexts
+│   │   ├── hooks/          # 自定义 Hooks
+│   │   ├── services/       # API 服务
+│   │   ├── types/          # TypeScript 类型定义
+│   │   └── utils/          # 工具函数
+│   └── public/
+├── server/                 # Node.js 后端服务
+│   ├── src/
+│   │   ├── controllers/    # 控制器
+│   │   ├── services/       # 业务逻辑
+│   │   ├── routes/         # 路由
+│   │   └── utils/          # 工具函数
+│   └── index.js
+├── docs/                   # 文档
+└── scripts/                # 构建脚本
 ```
 
-### 技术栈
+## 安装和运行
 
-- **Android SDK**: 最低版本 24 (Android 7.0)
-- **Kotlin**: 现代化的Android开发语言
-- **Jetpack Compose**: 声明式UI框架
-- **Room Database**: 本地数据存储
-- **BouncyCastle**: 密码学库
-- **Web3j**: 以太坊客户端库
-- **ZXing**: 二维码处理库
+### 前提条件
 
-## 安装配置
+- Node.js 18+
+- npm 或 yarn
+- Infura 项目 ID
 
-### 前置要求
+### 快速开始
 
-1. **Android Studio**: Hedgehog | 2023.1.1 或更高版本
-2. **JDK**: Java 8 或更高版本
-3. **Android SDK**: API Level 24+ (Android 7.0+)
-
-### 环境配置
-
-1. 克隆项目：
-```bash
-git clone <repository-url>
-cd MPCWallet
-```
-
-2. 配置Infura API密钥：
-   - 在 `MPCWalletApplication.kt` 中替换 `YOUR_INFURA_KEY_HERE`
-   - 或通过环境变量配置：
-   ```kotlin
-   private const val INFURA_KEY = BuildConfig.INFURA_API_KEY
+1. **克隆项目**
+   ```bash
+   git clone <repository-url>
+   cd mpc-wallet-app
    ```
 
-3. 构建项目：
-```bash
-./gradlew build
-```
+2. **安装依赖**
+   ```bash
+   npm run install-all
+   ```
 
-4. 运行应用：
-```bash
-./gradlew installDebug
-```
+3. **配置环境变量**
+   ```bash
+   # 在 server 目录下创建 .env 文件
+   cd server
+   cp .env.example .env
+   # 编辑 .env 文件，添加你的 Infura Project ID
+   ```
 
-## 使用指南
+4. **启动开发服务器**
+   ```bash
+   npm run dev
+   ```
 
-### 创建MPC钱包
+   这将同时启动前端开发服务器 (http://localhost:3000) 和后端 API 服务器 (http://localhost:8080)
 
-1. **启动应用**: 打开MPC钱包应用
-2. **创建钱包**: 点击右下角的"+"按钮
-3. **设置参数**: 配置阈值（如2-of-3）
-4. **协调生成**: 与其他参与方交换QR码完成密钥生成
+### 生产环境部署
 
-### 发送交易
+1. **构建前端应用**
+   ```bash
+   npm run build
+   ```
 
-1. **选择钱包**: 从钱包列表中选择要使用的钱包
-2. **创建交易**: 填写接收地址和金额
-3. **生成QR码**: 创建交易请求QR码
-4. **收集签名**: 与其他参与方交换签名QR码
-5. **广播交易**: 收集足够签名后自动广播
+2. **启动生产服务器**
+   ```bash
+   npm start
+   ```
 
-### QR码通信流程
+## 使用说明
 
-```mermaid
-sequenceDiagram
-    participant A as 设备A
-    participant B as 设备B
-    participant C as 设备C
-    
-    Note over A,C: 密钥生成流程
-    A->>B: 显示初始化QR码
-    B->>A: 扫描并显示响应QR码
-    C->>A: 扫描A的QR码
-    A->>C: 扫描C的响应QR码
-    
-    Note over A,C: 交易签名流程
-    A->>B: 显示交易请求QR码
-    B->>A: 扫描并显示签名QR码
-    C->>A: 扫描交易请求
-    A->>C: 扫描C的签名QR码
-```
+### 1. 创建多方计算钱包
 
-## 安全考虑
+1. 在主界面点击"创建新钱包"
+2. 选择参与方数量（当前支持 2-of-2）
+3. 系统会生成第一方的密钥分片
+4. 将显示的数据分享给其他参与方
+5. 等待其他参与方完成密钥生成协议
 
-### 密钥安全
-- ✅ 私钥永不完整存储在任何单个设备上
-- ✅ 使用硬件安全模块（如果可用）
-- ✅ 密钥分片使用AES-256加密存储
-- ✅ 支持生物识别认证
+### 2. 发起交易
 
-### 通信安全
-- ✅ QR码数据包含会话ID和序列号
-- ✅ 支持数据完整性验证
-- ✅ 防重放攻击保护
-- ⚠️ 设备间通信依赖物理安全
+1. 在钱包界面点击"发送交易"
+2. 输入接收地址和金额
+3. 系统会发起多方签名协议
+4. 与其他参与方完成交互数据交换
+5. 交易签名完成后自动广播到网络
 
-### 备份恢复
-- ✅ 支持密钥分片备份
-- ✅ 阈值恢复机制
-- ❌ 种子词恢复（不适用于MPC）
+### 3. 多方数据交互
 
-## 开发说明
+- 系统会在需要多方交互时弹出数据交换窗口
+- 当前显示 JSON 格式的交互数据
+- 用户可复制数据发送给其他参与方
+- 支持导入其他参与方的响应数据
+- 未来版本将支持二维码扫描方式
 
-### 项目结构
+## API 文档
 
-```
-MPCWallet/
-├── app/                    # 主应用模块
-│   ├── src/main/java/      # 源代码
-│   ├── src/main/res/       # 资源文件
-│   └── build.gradle        # 模块构建配置
-├── build.gradle            # 项目构建配置
-├── settings.gradle         # 项目设置
-└── gradle.properties       # Gradle属性
-```
+### 后端 API
 
-### 密码学实现
+- `POST /api/wallet/create` - 创建钱包
+- `POST /api/wallet/import` - 导入钱包
+- `GET /api/wallet/balance/:address` - 获取余额
+- `POST /api/transaction/create` - 创建交易
+- `POST /api/transaction/sign` - 签名交易
+- `POST /api/transaction/broadcast` - 广播交易
+- `POST /api/mpc/keygen` - MPC 密钥生成
+- `POST /api/mpc/sign` - MPC 签名
 
-本项目使用简化的MPC实现作为概念验证。在生产环境中，应该：
+详细 API 文档请参考 [API.md](docs/API.md)
 
-1. **集成Coinbase CB-MPC库**: 使用经过审计的密码学实现
-2. **硬件安全**: 集成TEE (Trusted Execution Environment)
-3. **形式化验证**: 确保协议的正确性和安全性
+## 安全注意事项
 
-### 构建配置
+1. **私钥安全**: 私钥分片仅存储在本地，不会发送到服务器
+2. **网络安全**: 建议在生产环境中使用 HTTPS
+3. **多方验证**: 在进行重要操作前，请验证其他参与方的身份
+4. **备份重要**: 请妥善保管钱包备份和恢复短语
 
-```gradle
-android {
-    compileSdk 34
-    minSdk 24
-    targetSdk 34
-    
-    buildFeatures {
-        compose true
-    }
-    
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-}
-```
+## 开发指南
 
-## 测试
+### 添加新的区块链网络
 
-### 单元测试
-```bash
-./gradlew test
-```
+1. 在 `client/src/config/networks.ts` 中添加网络配置
+2. 在 `server/src/services/blockchain.js` 中添加网络支持
+3. 更新相关的类型定义
 
-### 集成测试
-```bash
-./gradlew connectedAndroidTest
-```
+### 扩展 MPC 协议
 
-### MPC协议测试
-运行多设备模拟测试以验证MPC协议的正确性。
-
-## 部署
-
-### 发布构建
-```bash
-./gradlew assembleRelease
-```
-
-### 代码混淆
-ProGuard规则已配置以保护敏感代码：
-- 密码学类
-- MPC协议实现
-- 数据模型
+1. 在 `server/src/services/mpc.js` 中添加新的协议实现
+2. 更新前端组件以支持新的协议流程
+3. 添加相应的测试用例
 
 ## 贡献指南
 
-1. Fork项目
-2. 创建功能分支
-3. 提交更改
-4. 创建Pull Request
+1. Fork 本项目
+2. 创建特性分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 开启 Pull Request
 
 ## 许可证
 
-本项目基于MIT许可证开源 - 详见 [LICENSE](LICENSE) 文件。
-
-## 免责声明
-
-⚠️ **重要提醒**: 这是一个概念验证项目，不应用于存储实际的加密货币资产。在生产环境中使用前，需要：
-
-- 完整的安全审计
-- 密码学专家审查
-- 大量的测试和验证
-- 集成经过验证的MPC库
+本项目基于 MIT 许可证开源。详情请参阅 [LICENSE](LICENSE) 文件。
 
 ## 支持
 
-如有问题或建议，请：
-- 创建Issue
-- 联系开发团队
-- 查看文档
+如有问题或需要帮助，请：
 
----
+1. 查看 [FAQ](docs/FAQ.md)
+2. 提交 [Issue](issues)
+3. 参考 [官方文档](https://github.com/coinbase/cb-mpc)
 
-**MPC Wallet** - 让多方计算钱包变得简单易用 🚀 
+## 致谢
+
+- [Coinbase cb-mpc 库](https://github.com/coinbase/cb-mpc)
+- [Ethers.js](https://docs.ethers.io/)
+- [React](https://reactjs.org/)
+- [Ant Design](https://ant.design/)

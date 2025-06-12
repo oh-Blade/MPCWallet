@@ -94,15 +94,20 @@ const Transaction = () => {
   const handleMPCSigning = async (txData) => {
     setSigning(true);
     try {
-      const signingResult = await startSigning({
-        wallet: selectedWallet,
-        transaction: {
-          to: txData.to,
-          value: txData.amount,
-          gasLimit: gasEstimate?.gasLimit,
-          gasPrice: gasEstimate?.gasPrice
-        }
-      });
+      const transactionData = {
+        to: txData.to,
+        value: txData.amount,
+        gasLimit: gasEstimate?.gasLimit,
+        gasPrice: gasEstimate?.gasPrice
+      };
+      
+      const walletConfig = {
+        address: selectedWallet.address,
+        threshold: selectedWallet.threshold,
+        parties: selectedWallet.parties
+      };
+      
+      const signingResult = await startSigning(transactionData, walletConfig);
 
       if (signingResult.success) {
         setCurrentStep(2);

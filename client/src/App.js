@@ -4,6 +4,7 @@ import { Layout, message, Spin } from 'antd';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import WalletCreate from './components/WalletCreate';
+import WalletJoin from './components/WalletJoin';
 import WalletList from './components/WalletList';
 import Transaction from './components/Transaction';
 import MPCDataModal from './components/MPCDataModal';
@@ -65,6 +66,7 @@ function App() {
                       <Route path="/" element={<Navigate to="/dashboard" replace />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/wallet/create" element={<WalletCreate />} />
+                      <Route path="/wallet/join" element={<WalletJoin />} />
                       <Route path="/wallet/list" element={<WalletList />} />
                       <Route path="/transaction" element={<Transaction />} />
                     </Routes>

@@ -14,6 +14,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
 import { useMPC } from '../contexts/MPCContext';
+import { CopyOutlined } from '@ant-design/icons';
+import { message } from 'antd';
 
 const { Title, Paragraph, Text } = Typography;
 const { Step } = Steps;
@@ -21,12 +23,13 @@ const { Step } = Steps;
 const WalletCreate = () => {
   const navigate = useNavigate();
   const { createWallet } = useWallet();
-  const { startKeyGeneration, keyGenProgress } = useMPC();
+  const { startKeyGeneration, keyGenProgress, generateInvitationData } = useMPC();
   
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const [walletConfig, setWalletConfig] = useState(null);
   const [creating, setCreating] = useState(false);
+  const [invitationData, setInvitationData] = useState(null);
 
   const steps = [
     {
@@ -72,6 +75,11 @@ const WalletCreate = () => {
         };
 
         await createWallet(walletData);
+        
+        // 生成邀请数据供其他参与方加入
+        const inviteData = generateInvitationData(config, keyGenResult.sessionId);
+        setInvitationData(inviteData);
+        
         setCurrentStep(2);
       }
     } catch (error) {
@@ -223,8 +231,55 @@ const WalletCreate = () => {
               </div>
               <Title level={3}>钱包创建成功！</Title>
               <Paragraph>
-                您的 MPC 钱包已成功创建，现在可以开始使用了。
+                您的 MPC 钱包已成功创建，请分享邀请数据给其他参与方。
               </Paragraph>
+
+              {invitationData && (
+                <div style={{ textAlign: 'left', marginTop: 24 }}>
+                  <Alert
+                    message="邀请其他参与方"
+                    description="请将下面的邀请数据发送给其他参与方，他们可以使用这些数据加入您的钱包。"
+                    type="info"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                  
+                  <div style={{ marginBottom: 16 }}>
+                    <Title level={4}>邀请数据</Title>
+                    <div style={{
+                      background: '#f5f5f5',
+                      padding: '12px',
+                      borderRadius: '6px',
+                      fontFamily: 'monospace',
+                      fontSize: '12px',
+                      maxHeight: '200px',
+                      overflow: 'auto',
+                      border: '1px solid #d9d9d9'
+                    }}>
+                      {JSON.stringify(invitationData, null, 2)}
+                    </div>
+                    <div style={{ marginTop: 8 }}>
+                      <Button 
+                        icon={<CopyOutlined />}
+                        onClick={() => {
+                          navigator.clipboard.writeText(JSON.stringify(invitationData, null, 2));
+                          message.success('邀请数据已复制到剪贴板');
+                        }}
+                      >
+                        复制邀请数据
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Alert
+                    message="重要说明"
+                    description={`参与方数量设置为 ${walletConfig?.parties} 人，需要至少 ${walletConfig?.threshold} 人参与才能执行交易。请确保所有参与方都成功加入钱包。`}
+                    type="warning"
+                    showIcon
+                    style={{ marginBottom: 16 }}
+                  />
+                </div>
+              )}
               
               <Space size="large">
                 <Button 

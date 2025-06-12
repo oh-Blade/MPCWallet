@@ -17,7 +17,8 @@ import {
   DollarOutlined,
   PlusOutlined,
   EyeOutlined,
-  SendOutlined
+  SendOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useWallet } from '../contexts/WalletContext';
@@ -119,6 +120,13 @@ const Dashboard = () => {
       icon: <PlusOutlined />,
       action: () => navigate('/wallet/create'),
       color: '#1890ff'
+    },
+    {
+      title: '加入钱包',
+      description: '加入他人创建的 MPC 钱包',
+      icon: <TeamOutlined />,
+      action: () => navigate('/wallet/join'),
+      color: '#722ed1'
     },
     {
       title: '查看钱包',

@@ -333,4 +333,4 @@ const WalletJoin = () => {
   );
 };
 
-export default WalletJoin; 
+export default WalletJoin;

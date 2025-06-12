@@ -22,13 +22,12 @@ export const MPCProvider = ({ children }) => {
     try {
       // 转换参数名以匹配后端API，确保数字类型
       const requestData = {
-        participants: parseInt(config.parties),  // 转换为整数
-        threshold: parseInt(config.threshold),   // 转换为整数
-        sessionId: 'session_' + Date.now() // 生成会话ID
+        parties: parseInt(config.parties),    // 转换为整数
+        threshold: parseInt(config.threshold) // 转换为整数
       };
       
-      const response = await axios.post('/api/mpc/keygen/init', requestData);
-      const sessionId = response.data.sessionId;
+      const response = await axios.post('/api/mpc/keygen/start', requestData);
+      const sessionId = response.data.data.sessionId;
 
       // 模拟密钥生成进度
       setKeyGenProgress(0);
@@ -53,9 +52,9 @@ export const MPCProvider = ({ children }) => {
       return {
         success: true,
         sessionId,
-        keyShares: ['share1', 'share2', 'share3'],
-        publicKey: '0x04...',
-        address: '0x' + Math.random().toString(16).substr(2, 40)
+        keyShares: response.data.data.keyShares,
+        publicKey: response.data.data.publicKey,
+        address: response.data.data.address
       };
     } catch (error) {
       console.error('密钥生成失败:', error);
@@ -63,10 +62,13 @@ export const MPCProvider = ({ children }) => {
     }
   };
 
-  const startSigning = async (params) => {
+  const startSigning = async (transactionData, walletConfig) => {
     try {
-      const response = await axios.post('/api/mpc/sign/init', params);
-      const sessionId = response.data.sessionId;
+      const response = await axios.post('/api/mpc/sign/start', {
+        transactionData,
+        walletConfig
+      });
+      const sessionId = response.data.data.sessionId;
 
       // 模拟签名进度
       setSigningProgress(0);
@@ -91,7 +93,7 @@ export const MPCProvider = ({ children }) => {
       return {
         success: true,
         sessionId,
-        signature: 'mock_signature'
+        signature: response.data.data.finalSignature
       };
     } catch (error) {
       console.error('签名失败:', error);
@@ -117,12 +119,81 @@ export const MPCProvider = ({ children }) => {
       if (!sessionId) {
         throw new Error('缺少sessionId');
       }
-      await axios.post(`/api/mpc/session/${sessionId}/data`, data);
+      await axios.post(`/api/mpc/session/${sessionId}/participant`, {
+        participantId: 'participant_' + Date.now(),
+        roundData: data
+      });
       closeModal();
     } catch (error) {
       console.error('MPC数据提交失败:', error);
       throw error;
     }
+  };
+
+  const joinKeyGeneration = async (params) => {
+    try {
+      // 加入MPC密钥生成过程
+      const response = await axios.post('/api/mpc/keygen/join', {
+        sessionId: params.sessionId,
+        participantId: 'participant_' + Date.now()
+      });
+
+      // 模拟密钥生成进度
+      setKeyGenProgress(0);
+      const progressInterval = setInterval(() => {
+        setKeyGenProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(progressInterval);
+            return 100;
+          }
+          return prev + 12;
+        });
+      }, 400);
+
+      // 如果会话已完成，直接返回结果
+      if (response.data.data.status === 'completed') {
+        setKeyGenProgress(100);
+        return {
+          success: true,
+          sessionId: response.data.data.sessionId,
+          keyShares: response.data.data.keyShares,
+          publicKey: response.data.data.publicKey,
+          address: response.data.data.address
+        };
+      }
+
+      // 如果还在进行中，显示MPC数据交换模态框
+      setTimeout(() => {
+        showMPCModal(
+          { sessionId: params.sessionId, round: 1, data: 'participant_keygen_data' },
+          'send'
+        );
+      }, 1500);
+
+      return {
+        success: true,
+        sessionId: response.data.data.sessionId,
+        keyShares: response.data.data.keyShares || [],
+        publicKey: response.data.data.publicKey,
+        address: response.data.data.address,
+        status: response.data.data.status
+      };
+    } catch (error) {
+      console.error('加入密钥生成失败:', error);
+      throw error;
+    }
+  };
+
+  const generateInvitationData = (walletConfig, sessionId) => {
+    return {
+      sessionId,
+      walletName: walletConfig.name,
+      participants: walletConfig.parties,
+      threshold: walletConfig.threshold,
+      creator: 'Current User', // 在实际应用中应该是当前用户名
+      createdAt: new Date().toISOString(),
+      inviteCode: sessionId.substring(8) // 短邀请码
+    };
   };
 
   const value = {
@@ -132,6 +203,8 @@ export const MPCProvider = ({ children }) => {
     modalData,
     modalType,
     startKeyGeneration,
+    joinKeyGeneration,
+    generateInvitationData,
     startSigning,
     showMPCModal,
     closeModal,

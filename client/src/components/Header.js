@@ -6,7 +6,8 @@ import {
   WalletOutlined, 
   TransactionOutlined,
   PlusOutlined,
-  UnorderedListOutlined 
+  UnorderedListOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 
 const { Header: AntHeader } = Layout;
@@ -31,6 +32,11 @@ const Header = () => {
           key: '/wallet/create',
           icon: <PlusOutlined />,
           label: '创建钱包',
+        },
+        {
+          key: '/wallet/join',
+          icon: <TeamOutlined />,
+          label: '加入钱包',
         },
         {
           key: '/wallet/list',
