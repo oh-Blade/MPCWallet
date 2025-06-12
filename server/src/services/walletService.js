@@ -1,11 +1,27 @@
 const mpcService = require('./mpcService');
 const blockchainService = require('./blockchainService');
+const fileStorageService = require('./fileStorageService');
 const { v4: uuidv4 } = require('uuid');
 
 class WalletService {
   constructor() {
     // 存储用户钱包数据
     this.userWallets = new Map();
+    this.initializeStorage();
+  }
+
+  /**
+   * 初始化存储，从文件加载钱包数据
+   */
+  async initializeStorage() {
+    try {
+      // 等待文件存储服务初始化完成
+      await new Promise(resolve => setTimeout(resolve, 100));
+      this.userWallets = await fileStorageService.loadWallets();
+      console.log('钱包服务初始化完成，已加载存储的钱包数据');
+    } catch (error) {
+      console.error('初始化钱包存储失败:', error);
+    }
   }
 
   /**
@@ -51,6 +67,9 @@ class WalletService {
         this.userWallets.set(userId, []);
       }
       this.userWallets.get(userId).push(wallet);
+
+      // 保存到文件
+      await fileStorageService.saveWallets(this.userWallets);
 
       return {
         wallet: {
@@ -99,6 +118,9 @@ class WalletService {
         this.userWallets.set(userId, []);
       }
       this.userWallets.get(userId).push(wallet);
+
+      // 保存到文件
+      await fileStorageService.saveWallets(this.userWallets);
 
       // 获取钱包余额
       let balance = 0;
@@ -255,6 +277,10 @@ class WalletService {
       }
 
       userWallets.splice(walletIndex, 1);
+      
+      // 保存到文件
+      await fileStorageService.saveWallets(this.userWallets);
+      
       return true;
     } catch (error) {
       throw new Error(`删除钱包失败: ${error.message}`);
@@ -280,6 +306,9 @@ class WalletService {
       wallet.publicKey = mpcResult.publicKey;
       wallet.status = 'active';
       wallet.completedAt = new Date().toISOString();
+
+      // 保存到文件
+      await fileStorageService.saveWallets(this.userWallets);
 
       // 获取初始余额
       let balance = 0;
@@ -334,6 +363,9 @@ class WalletService {
 
       wallet.name = newName;
       wallet.updatedAt = new Date().toISOString();
+
+      // 保存到文件
+      await fileStorageService.saveWallets(this.userWallets);
 
       return {
         id: wallet.id,
