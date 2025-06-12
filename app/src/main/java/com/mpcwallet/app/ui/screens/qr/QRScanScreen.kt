@@ -1,5 +1,6 @@
 package com.mpcwallet.app.ui.screens.qr
 
+import android.text.Layout
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -38,7 +39,7 @@ fun QRScanScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Layout.Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
