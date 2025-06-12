@@ -37,15 +37,35 @@ class MPCService extends EventEmitter {
         lastActivity: new Date()
       };
 
+      // 将创建者添加为第一个参与者
+      const creatorId = `participant_creator_${Date.now()}`;
+      session.participants.set(creatorId, {
+        id: creatorId,
+        joinedAt: new Date(),
+        rounds: new Map(),
+        role: 'creator'
+      });
+
       this.activeSessions.set(sessionId, session);
 
-      // 模拟密钥生成过程
-      const keyGenResult = await this.simulateKeyGeneration(session);
-      
+      // 如果只需要1个参与者，立即完成密钥生成
+      if (session.totalParties === 1) {
+        const keyGenResult = await this.simulateKeyGeneration(session);
+        return {
+          success: true,
+          sessionId,
+          ...keyGenResult
+        };
+      }
+
+      // 否则返回会话信息，等待其他参与者加入
       return {
         success: true,
         sessionId,
-        ...keyGenResult
+        status: 'waiting_for_participants',
+        participantCount: session.participants.size,
+        totalParties: session.totalParties,
+        threshold: session.threshold
       };
     } catch (error) {
       console.error('MPC密钥生成失败:', error);
@@ -66,8 +86,7 @@ class MPCService extends EventEmitter {
       if (session.type !== 'keygen') {
         throw new Error('无效的会话类型');
       }
-
-      if (session.status !== 'active') {
+      if (session.status !== 'active' && session.status !== 'waiting_for_participants') {
         throw new Error('会话已完成或不可用');
       }
 

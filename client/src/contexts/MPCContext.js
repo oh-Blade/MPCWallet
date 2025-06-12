@@ -28,8 +28,21 @@ export const MPCProvider = ({ children }) => {
       
       const response = await axios.post('/api/mpc/keygen/start', requestData);
       const sessionId = response.data.data.sessionId;
+      const responseData = response.data.data;
 
-      // 模拟密钥生成进度
+      // 如果已经完成（只有1个参与者的情况），直接返回结果
+      if (responseData.keyShares && responseData.publicKey && responseData.address) {
+        setKeyGenProgress(100);
+        return {
+          success: true,
+          sessionId,
+          keyShares: responseData.keyShares,
+          publicKey: responseData.publicKey,
+          address: responseData.address
+        };
+      }
+
+      // 如果是等待其他参与者状态，模拟密钥生成进度
       setKeyGenProgress(0);
       const progressInterval = setInterval(() => {
         setKeyGenProgress(prev => {
@@ -52,9 +65,10 @@ export const MPCProvider = ({ children }) => {
       return {
         success: true,
         sessionId,
-        keyShares: response.data.data.keyShares,
-        publicKey: response.data.data.publicKey,
-        address: response.data.data.address
+        status: responseData.status,
+        participantCount: responseData.participantCount,
+        totalParties: responseData.totalParties,
+        threshold: responseData.threshold
       };
     } catch (error) {
       console.error('密钥生成失败:', error);

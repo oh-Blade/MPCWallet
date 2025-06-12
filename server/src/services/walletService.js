@@ -34,7 +34,7 @@ class WalletService {
         type: 'mpc',
         participantCount,
         threshold,
-        status: 'active',
+        status: mpcResult.status === 'waiting_for_participants' ? 'creating' : 'active',
         sessionId: mpcResult.sessionId,
         address: mpcResult.address,
         publicKey: mpcResult.publicKey,
@@ -67,7 +67,9 @@ class WalletService {
         mpcSession: {
           sessionId: mpcResult.sessionId,
           keyShares: mpcResult.keyShares,
-          totalParties: mpcResult.totalParties
+          totalParties: mpcResult.totalParties,
+          status: mpcResult.status,
+          participantCount: mpcResult.participantCount
         }
       };
     } catch (error) {
