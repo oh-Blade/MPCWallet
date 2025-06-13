@@ -97,3 +97,5 @@ Thumbs.db
 
 # Test build directory
 test-build/ node_modules/
+
+config.yaml
