@@ -9,6 +9,10 @@ find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenSSL REQUIRED)
 
+# 添加cb-mpc库的包含路径
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/cb-mpc)
+
 # 使用 Conan 包管理器或者手动链接库
 # 这里假设使用 vcpkg 或者 conan 来管理依赖
 
@@ -44,11 +48,13 @@ target_link_libraries(${PROJECT_NAME}
     OpenSSL::SSL 
     OpenSSL::Crypto
     nlohmann_json::nlohmann_json
+    ${CMAKE_CURRENT_SOURCE_DIR}/lib/libcbmpc.a  # 添加cb-mpc库
 )
 
 # 添加包含目录
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/cb-mpc  # 添加cb-mpc头文件目录
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 

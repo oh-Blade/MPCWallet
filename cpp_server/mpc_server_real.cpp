@@ -7,12 +7,12 @@
 #include <cstdlib>
 #include <memory>
 #include <vector>
-
 // 包含 cb-mpc 库头文件
-// #include "cbmpc/protocol/ec_dkg.h"
-// #include "cbmpc/protocol/ecdsa_2p.h"
-// #include "cbmpc/protocol/ecdsa_mp.h"
-// #include "cbmpc/crypto/secp256k1.h"
+// #include "include/cb-mpc/cbmpc/protocol/ec_dkg.h"
+// #include "cb-mpc/cbmpc/protocol/ec_dkg.h"
+// #include "cb-mpc/cbmpc/protocol/ecdsa_2p.h"
+// #include "cb-mpc/cbmpc/protocol/ecdsa_mp.h"
+// #include "cb-mpc/cbmpc/crypto/secp256k1.h"
 
 // 注意：实际使用时需要正确安装和包含 cb-mpc 库
 
@@ -31,21 +31,15 @@ private:
     
     // MPC 会话管理
     struct MPCSession {
-        std::string sessionId;
-        std::string type; // "keygen" 或 "sign"
-        int participantCount;
-        int threshold;
-        std::vector<std::string> participants;
-        std::string status; // "active", "completed", "failed"
-        int currentRound;
-        
-        // 实际的密钥数据 (使用 cb-mpc 类型)
-        // std::shared_ptr<coinbase::mpc::eckey::keygen_t> keygenData;
-        // std::shared_ptr<coinbase::mpc::ecdsa2pc::signing_t> signingData;
-        
-        // 临时用字符串存储，实际应该用上面的类型
-        std::string keygenData;
-        std::string signingData;
+        std::string sessionId;        // 会话ID
+        std::string type;            // 会话类型（"keygen"或"sign"）
+        int participantCount;        // 参与方数量
+        int threshold;              // 阈值
+        std::vector<std::string> participants;  // 参与者列表
+        std::string status;         // 会话状态
+        int currentRound;          // 当前轮次
+        std::string keygenData;    // 密钥生成数据
+        std::string signingData;   // 签名数据
     };
     
     std::map<std::string, MPCSession> activeSessions_;
