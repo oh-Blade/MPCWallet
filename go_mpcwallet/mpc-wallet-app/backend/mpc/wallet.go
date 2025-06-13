@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/coinbase/cb-mpc/cb-mpc-go/cblib"
+	"github.com/coinbase/cb-mpc/cb-mpc-go/network"
 	"github.com/coinbase/cb-mpc/demos/mocknet"
 )
 
@@ -30,6 +31,11 @@ type MPCWallet struct {
 	CurveCode int
 }
 
+type SignMPInput struct {
+	Key cblib.MPC_ECDSAMPC_KEY_PTR
+	Msg []byte
+}
+
 // walletCreationManager manages the wallet creation process
 type walletCreationManager struct {
 	sync.Mutex
@@ -45,6 +51,26 @@ var (
 	walletManagers = make(map[string]*walletCreationManager)
 	managerMutex   sync.Mutex
 )
+
+func EcdsaMPSignWrapper(job network.JobSessionMP, input *mocknet.MPCIO) (*mocknet.MPCIO, error) {
+	signInput := input.Opaque.(SignMPInput)
+	msg := signInput.Msg
+	defaultSigReceiver := 0
+	sig, err := cblib.MPC_ecdsampc_sign(job, signInput.Key, msg, defaultSigReceiver)
+	if err != nil {
+		return nil, fmt.Errorf("calling ecdsa mp sign: %v", err)
+	}
+	return &mocknet.MPCIO{Opaque: sig}, nil
+}
+
+func EcdsaMPKeygenWrapper(job network.JobSessionMP, input *mocknet.MPCIO) (*mocknet.MPCIO, error) {
+	curveCode := input.Opaque.(int)
+	keyshare, err := cblib.MPC_ecdsampc_dkg(job, curveCode)
+	if err != nil {
+		return nil, fmt.Errorf("calling ecdsa mp keygen: %v", err)
+	}
+	return &mocknet.MPCIO{Opaque: keyshare}, nil
+}
 
 // InitiateWalletCreation starts a new wallet creation process
 func InitiateWalletCreation(parties int) (*WalletCreationData, error) {
