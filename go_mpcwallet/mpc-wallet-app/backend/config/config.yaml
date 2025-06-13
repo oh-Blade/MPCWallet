@@ -1,0 +1,67 @@
+# 服务器配置
+server:
+  # 服务端口
+  port: 8080
+  # 跨域配置
+  cors:
+    allowed_origins:
+      - http://localhost:3000
+    allowed_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+    allowed_headers:
+      - Content-Type
+      - Authorization
+    max_age: 86400
+
+# 以太坊网络配置
+ethereum:
+  # 网络类型: mainnet, testnet, local
+  network: testnet
+  # Infura 节点 URL
+  infura_url: "https://sepolia.infura.io/v3/add521c98d1f4653834d733c3030305b"
+  # 链 ID
+  chain_id: 11155111 # Sepolia testnet
+  # Gas 价格配置
+  gas:
+    max_price: 1000000000000000000  # Gwei
+    priority_price: 1000000000000000000  # Gwei
+
+# MPC 配置
+mpc:
+  # 最小参与方数量
+  min_participants: 2
+  # 最大参与方数量
+  max_participants: 5
+  # 会话超时时间（秒）
+  timeout: 300
+  # 密钥分片存储路径
+  share_storage_path: "./data/shares"
+  # 会话数据存储路径
+  session_storage_path: "./data/sessions"
+
+# 日志配置
+logging:
+  # 日志级别: debug, info, warn, error
+  level: info
+  # 日志文件路径
+  file_path: "./logs/mpc-wallet.log"
+  # 是否输出到控制台
+  console: true
+  # 日志格式: json, text
+  format: text
+
+# 安全配置
+security:
+  # API 密钥（用于内部服务认证）
+  api_key: "YOUR-API-KEY"
+  # JWT 配置
+  jwt:
+    secret: "YOUR-JWT-SECRET"
+    expiration: 86400  # 24小时
+  # 请求速率限制
+  rate_limit:
+    enabled: true
+    requests_per_minute: 60 
