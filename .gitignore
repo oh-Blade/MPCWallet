@@ -99,3 +99,4 @@ Thumbs.db
 test-build/ node_modules/
 
 config.yaml
+go_mpcwallet/mpc-wallet-app/backend/config/config.yaml
