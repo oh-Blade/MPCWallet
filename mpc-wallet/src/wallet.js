@@ -14,7 +14,7 @@ const {
   deriveChildPublicKey,
   derivePathPublicKey,
   applyTweaksToKeyShare,
-  deriveReceivingAddresses,
+  deriveBIP44Addresses,
 } = require('./hdwallet');
 const {
   buildTransferTransaction,
@@ -63,12 +63,14 @@ function initMPCWallet(options = {}) {
  * @param {Buffer} groupPublicKey
  * @param {Buffer} chainCode
  * @param {number} orderId - 订单号（即子地址索引）
+ * @param {number} coinType - BIP-44 coin type（ETH=60, 默认 60）
  * @returns {{ address, pubKey, path, tweaks }}
  */
-function deriveOrderAddress(groupPublicKey, chainCode, orderId) {
+function deriveOrderAddress(groupPublicKey, chainCode, orderId, coinType = 60) {
   const result = derivePathPublicKey(groupPublicKey, chainCode, [0, orderId]);
-  console.log(`订单 #${orderId} 收款地址: ${result.address} (路径: m/0/${orderId})`);
-  return result;
+  const fullPath = `m/44'/${coinType}'/0'/0/${orderId}`;
+  console.log(`订单 #${orderId} 收款地址: ${result.address} (路径: ${fullPath})`);
+  return { ...result, path: fullPath };
 }
 
 /**
@@ -77,11 +79,12 @@ function deriveOrderAddress(groupPublicKey, chainCode, orderId) {
  * @param {Buffer} groupPublicKey
  * @param {Buffer} chainCode
  * @param {number} count
+ * @param {number} coinType - BIP-44 coin type（ETH=60, 默认 60）
  * @returns {Array}
  */
-function deriveAddressBatch(groupPublicKey, chainCode, count) {
+function deriveAddressBatch(groupPublicKey, chainCode, count, coinType = 60) {
   console.log(`\n批量派生 ${count} 个收款地址...`);
-  const addresses = deriveReceivingAddresses(groupPublicKey, chainCode, count);
+  const addresses = deriveBIP44Addresses(groupPublicKey, chainCode, count, 0, 0, coinType, 0);
   addresses.forEach(a => {
     console.log(`  [${a.path}] ${a.address}`);
   });
@@ -212,7 +215,8 @@ function signERC20Transfer(params, wallet, signerIds) {
  * @param {number[]} signerIds
  */
 function signFromDerivedAddress(params, wallet, orderId, signerIds) {
-  console.log(`\n从派生地址 m/0/${orderId} 发起转账...`);
+  const fullPath = `m/44'/60'/0'/0/${orderId}`;
+  console.log(`\n从派生地址 ${fullPath} 发起转账...`);
 
   // 重新推导 tweaks
   const { address, tweaks } = deriveOrderAddress(

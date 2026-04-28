@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPC Wallet</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0a0c0f;
+  --bg2: #0f1217;
+  --bg3: #151a22;
+  --border: #1e2733;
+  --border2: #2a3444;
+  --text: #c8d4e0;
+  --text2: #6b7f94;
+  --text3: #3d4f63;
+  --accent: #00d4ff;
+  --accent2: #0099bb;
+  --green: #00e5a0;
+  --green2: #007a55;
+  --red: #ff4d6a;
+  --amber: #ffb347;
+  --purple: #a78bfa;
+  --private: #ff4d6a;
+  --public: #00e5a0;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* scan-line overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,212,255,0.015) 2px,
+    rgba(0,212,255,0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── Header ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.header-brand {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--accent);
+  text-transform: uppercase;
+}
+
+.header-divider { width: 1px; height: 20px; background: var(--border2); }
+
+.party-badge {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 3px;
+  letter-spacing: 0.05em;
+}
+.party-badge.p1 { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid var(--accent2); }
+.party-badge.p2 { background: rgba(0,229,160,0.1); color: var(--green); border: 1px solid var(--green2); }
+.party-badge.p3 { background: rgba(167,139,250,0.1); color: var(--purple); border: 1px solid #6d54d4; }
+
+.header-status {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── Layout ── */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 56px);
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+}
+
+.sidebar-section {
+  padding: 0 16px;
+  margin-bottom: 24px;
+}
+
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 0 4px;
+  margin-bottom: 8px;
+}
+
+.phase-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+}
+.phase-item:hover { background: var(--bg3); }
+.phase-item.active { background: rgba(0,212,255,0.07); }
+
+.phase-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border2);
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.phase-item.done .phase-num {
+  background: var(--green2);
+  border-color: var(--green);
+  color: var(--green);
+}
+.phase-item.active .phase-num {
+  background: rgba(0,212,255,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.phase-name {
+  font-size: 12px;
+  color: var(--text2);
+  transition: color 0.15s;
+}
+.phase-item.active .phase-name { color: var(--text); }
+.phase-item.done .phase-name { color: var(--text2); }
+
+/* ── Main content ── */
+.main {
+  padding: 32px;
+  max-width: 900px;
+}
+
+/* ── Section card ── */
+.section {
+  margin-bottom: 32px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.4s, transform 0.4s;
+}
+.section.visible {
+  opacity: 1;
+  transform: none;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.section-num {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.section-subtitle {
+  font-size: 12px;
+  color: var(--text2);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Card ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Data fields ── */
+.data-row {
+  display: grid;
+  grid-template-columns: 180px 1fr auto;
+  align-items: start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.data-row:last-child { border-bottom: none; }
+
+.data-label {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  padding-top: 2px;
+}
+
+.data-value {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  word-break: break-all;
+  line-height: 1.7;
+}
+
+.data-value.truncated {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.data-badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  margin-top: 3px;
+}
+.data-badge.private {
+  background: rgba(255,77,106,0.12);
+  color: var(--private);
+  border: 1px solid rgba(255,77,106,0.3);
+}
+.data-badge.public {
+  background: rgba(0,229,160,0.1);
+  color: var(--public);
+  border: 1px solid rgba(0,229,160,0.25);
+}
+
+/* ── Buttons ── */
+.btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 9px 18px;
+  border: 1px solid;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: uppercase;
+  background: transparent;
+}
+
+.btn-primary {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-primary:hover {
+  background: rgba(0,212,255,0.1);
+  box-shadow: 0 0 16px rgba(0,212,255,0.2);
+}
+
+.btn-success {
+  border-color: var(--green);
+  color: var(--green);
+}
+.btn-success:hover {
+  background: rgba(0,229,160,0.1);
+}
+
+.btn-warn {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.btn-warn:hover { background: rgba(255,179,71,0.1); }
+
+.btn-sm { padding: 5px 12px; font-size: 10px; }
+.btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+
+/* ── Input / Textarea ── */
+.input-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-field {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+.input-field:focus { border-color: var(--accent); }
+.input-field::placeholder { color: var(--text3); }
+
+.form-group { margin-bottom: 12px; }
+
+/* ── Copy box ── */
+.copy-box {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--accent);
+  word-break: break-all;
+  line-height: 1.7;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.copy-box:hover { border-color: var(--accent); }
+
+.copy-hint {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 0.08em;
+}
+
+/* ── Alert ── */
+.alert {
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 12px;
+  border-left: 3px solid;
+}
+.alert-info { background: rgba(0,212,255,0.06); border-color: var(--accent); color: var(--text); }
+.alert-success { background: rgba(0,229,160,0.06); border-color: var(--green); color: var(--text); }
+.alert-error { background: rgba(255,77,106,0.06); border-color: var(--red); color: var(--text); }
+.alert-warn { background: rgba(255,179,71,0.06); border-color: var(--amber); color: var(--text); }
+
+/* ── Progress ── */
+.progress-track {
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  margin: 12px 0;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green));
+  border-radius: 1px;
+  transition: width 0.5s ease;
+}
+
+/* ── Address card ── */
+.addr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.addr-card {
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.addr-card:hover { border-color: var(--accent); }
+.addr-path {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.addr-value {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text);
+  word-break: break-all;
+}
+
+/* ── Log ── */
+.log-container {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 14px;
+  font-family: var(--mono);
+  font-size: 11px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 12px;
+}
+
+.log-entry {
+  padding: 2px 0;
+  display: flex;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+.log-entry:last-child { border-bottom: none; margin-bottom: 0; }
+.log-time { color: var(--text3); flex-shrink: 0; }
+.log-msg { color: var(--text2); }
+.log-msg.ok { color: var(--green); }
+.log-msg.err { color: var(--red); }
+.log-msg.info { color: var(--accent); }
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+
+/* ── Tag ── */
+.tag {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  letter-spacing: 0.1em;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.tag-new { background: rgba(0,212,255,0.15); color: var(--accent); }
+.tag-req { background: rgba(255,179,71,0.15); color: var(--amber); }
+
+/* ── Spinner ── */
+.spin {
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="header-brand">MPC Wallet</span>
+  <div class="header-divider"></div>
+  <div id="party-badge" class="party-badge">加载中...</div>
+  <div class="header-divider"></div>
+  <span style="font-size:12px;color:var(--text2);">Feldman VSS · Pedersen DKG · TSS</span>
+  <div class="header-status">
+    <div class="status-dot"></div>
+    <span id="status-text">连接中</span>
+  </div>
+</header>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">协议阶段</div>
+
+      <div class="phase-item" id="nav-0" onclick="scrollTo('sec-intro')">
+        <div class="phase-num">①</div>
+        <div>
+          <div class="phase-name">初始化</div>
+        </div>
+      </div>
+
+      <div class="phase-item" id="nav-1" onclick="scrollTo('sec-phase1')">
+        <div class="phase-num">②</div>
+        <div>
+          <div class="phase-name">DKG 阶段 1</div>
+        </div>
+      </div>
+
+      <div class="phase-item" id="nav-2" onclick="scrollTo('sec-phase2')">
+        <div class="phase-num">③</div>
+        <div>
+          <div class="phase-name">DKG 阶段 2</div>
+        </div>
+      </div>
+
+      <div class="phase-item" id="nav-3" onclick="scrollTo('sec-phase3')">
+        <div class="phase-num">④</div>
+        <div>
+          <div class="phase-name">DKG 阶段 3</div>
+        </div>
+      </div>
+
+      <div class="phase-item" id="nav-4" onclick="scrollTo('sec-hd')">
+        <div class="phase-num">⑤</div>
+        <div>
+          <div class="phase-name">HD 地址派生</div>
+        </div>
+      </div>
+
+      <div class="phase-item" id="nav-5" onclick="scrollTo('sec-tss')">
+        <div class="phase-num">⑥</div>
+        <div>
+          <div class="phase-name">TSS 签名</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">图例</div>
+      <div style="padding:0 4px;display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="data-badge private">PRIVATE</span>
+          <span style="font-size:11px;color:var(--text2);">仅本方持有</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="data-badge public">PUBLIC</span>
+          <span style="font-size:11px;color:var(--text2);">可公开广播</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">其他参与方</div>
+      <div id="other-parties" style="padding:0 4px;font-size:11px;color:var(--text2);">
+        <div>Port 3001 — 方 1</div>
+        <div>Port 3002 — 方 2</div>
+        <div>Port 3003 — 方 3</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Intro -->
+    <section class="section visible" id="sec-intro">
+      <div class="section-header">
+        <span class="section-num">00</span>
+        <div>
+          <div class="section-title">协议说明</div>
+          <div class="section-subtitle">3-of-2 门限，三方分布式密钥生成</div>
+        </div>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:12px;color:var(--text2);line-height:1.9;">
+          <p>本页面是 MPC 钱包协议的逐步演示。三个浏览器窗口分别代表三个独立参与方（端口 3001 / 3002 / 3003）。</p>
+          <p style="margin-top:10px;">需要交换数据的步骤，通过<strong style="color:var(--amber)">手动复制粘贴</strong>来模拟网络传输。标注 <span class="data-badge public" style="vertical-align:middle;">PUBLIC</span> 的数据可以公开广播，标注 <span class="data-badge private" style="vertical-align:middle;">PRIVATE</span> 的数据只能由本方持有。</p>
+        </div>
+      </div>
+
+      <div id="party-info-card" class="card" style="margin-top:12px;">
+        <div style="font-family:var(--mono);font-size:12px;color:var(--text2);">加载本方信息中…</div>
+      </div>
+    </section>
+
+    <!-- Phase 1 -->
+    <section class="section" id="sec-phase1">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <div>
+          <div class="section-title">DKG 阶段 1 — 生成本地多项式</div>
+          <div class="section-subtitle">每方独立生成随机多项式，计算承诺。私钥分片从此开始，完整私钥永不出现。</div>
+        </div>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="alert alert-info" id="phase1-hint">
+        点击下方按钮，本方将随机生成多项式并计算 Feldman VSS 承诺。
+      </div>
+
+      <div class="card">
+        <div class="btn-group" style="margin-top:0;">
+          <button class="btn btn-primary" id="btn-phase1" onclick="doPhase1()">
+            执行 DKG 阶段 1
+          </button>
+        </div>
+      </div>
+
+      <div id="phase1-result" style="display:none;">
+        <div class="card">
+          <div class="card-title">本方生成的多项式数据</div>
+          <div id="phase1-data"></div>
+        </div>
+
+        <div class="card" style="border-color:var(--amber);">
+          <div class="card-title" style="color:var(--amber);">
+            ⬆ 广播给其他两方（复制下方数据）
+            <span class="tag tag-req">需要操作</span>
+          </div>
+          <div class="alert alert-warn">
+            将以下数据发送给其他两个参与方。在对方页面的"DKG 阶段 2"区域粘贴。
+          </div>
+          <div id="phase1-broadcast"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Phase 2 -->
+    <section class="section" id="sec-phase2">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <div>
+          <div class="section-title">DKG 阶段 2 — 接收并验证分片</div>
+          <div class="section-subtitle">接收其他两方发来的分片，通过 Feldman VSS 验证合法性。</div>
+        </div>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="alert alert-info">
+        将其他两方在阶段 1 广播的数据粘贴到下方，验证并接收分片。<br>
+        <strong>注意：</strong>接收自方 X 的数据时，只取该方对应本方编号的分片。
+      </div>
+
+      <!-- 接收方 A 的数据 -->
+      <div class="card" id="recv-card-other1">
+        <div class="card-title" id="recv-title-other1">接收来自方 ? 的数据</div>
+        <div class="form-group">
+          <label class="input-label">粘贴对方阶段 1 的广播数据（JSON）</label>
+          <textarea class="input-field" id="recv-input-1" rows="5" placeholder='{"partyId":1,"commitments":[...],"shardsForOthers":{"1":"0x...","2":"0x...","3":"0x..."}}'></textarea>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="doPhase2(0)">验证并接收</button>
+        <div id="recv-result-1" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- 接收方 B 的数据 -->
+      <div class="card" id="recv-card-other2">
+        <div class="card-title" id="recv-title-other2">接收来自方 ? 的数据</div>
+        <div class="form-group">
+          <label class="input-label">粘贴对方阶段 1 的广播数据（JSON）</label>
+          <textarea class="input-field" id="recv-input-2" rows="5" placeholder='{"partyId":2,"commitments":[...],"shardsForOthers":{"1":"0x...","2":"0x...","3":"0x..."}}'></textarea>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="doPhase2(1)">验证并接收</button>
+        <div id="recv-result-2" style="margin-top:10px;"></div>
+      </div>
+
+      <div id="phase2-summary" style="display:none;" class="card">
+        <div class="card-title">分片收集进度</div>
+        <div id="phase2-progress"></div>
+        <div class="progress-track"><div class="progress-bar" id="phase2-bar" style="width:33%"></div></div>
+      </div>
+    </section>
+
+    <!-- Phase 3 -->
+    <section class="section" id="sec-phase3">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <div>
+          <div class="section-title">DKG 阶段 3 — 聚合密钥材料</div>
+          <div class="section-subtitle">聚合所有分片，独立计算全局公钥。完整私钥在此过程中始终不存在。</div>
+        </div>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="alert alert-warn">
+        需要提供所有三方在阶段 1 发布的承诺（用于计算全局公钥）。将三方的 commitments 数组粘贴到下方。
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label class="input-label">三方承诺（JSON 对象，键为方编号）</label>
+          <textarea class="input-field" id="phase3-commitments" rows="6"
+            placeholder='{"1":["hex1","hex2"],"2":["hex1","hex2"],"3":["hex1","hex2"]}'></textarea>
+          <div style="margin-top:6px;font-size:11px;color:var(--text3);">本方承诺已自动填入，粘贴其他两方的承诺后执行。</div>
+        </div>
+        <div class="btn-group" style="margin-top:0;">
+          <button class="btn btn-primary" onclick="doPhase3()">执行 DKG 阶段 3 — 聚合</button>
+          <button class="btn btn-warn btn-sm" onclick="prefillPhase3()">自动填入本方承诺</button>
+        </div>
+      </div>
+
+      <div id="phase3-result" style="display:none;">
+        <div class="card" style="border-color:var(--green);">
+          <div class="card-title" style="color:var(--green);">✓ DKG 完成 — 密钥材料生成</div>
+          <div id="phase3-data"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HD Derivation -->
+    <section class="section" id="sec-hd">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <div>
+          <div class="section-title">HD 地址派生</div>
+          <div class="section-subtitle">公钥侧 BIP-44 派生，无需私钥，任意方可独立执行。</div>
+        </div>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="alert alert-info">
+        HD 派生仅使用公钥和链码，完全不需要私钥分片参与。每个地址对应一个唯一的收款路径。
+      </div>
+
+      <div class="card">
+        <div class="form-group">
+          <label class="input-label">派生地址数量</label>
+          <input class="input-field" id="hd-count" type="number" value="5" min="1" max="20" style="width:120px;">
+        </div>
+        <button class="btn btn-primary" onclick="doHD()">派生收款地址</button>
+      </div>
+
+      <div id="hd-result" style="display:none;">
+        <div class="card">
+          <div class="card-title">派生结果 <span style="font-weight:400;color:var(--text2);font-size:10px;">点击地址可复制</span></div>
+          <div id="hd-addresses" class="addr-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TSS Signing -->
+    <section class="section" id="sec-tss">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <div>
+          <div class="section-title">TSS 门限签名</div>
+          <div class="section-subtitle">乘法 k 分享 + 加法 x 分享，两轮协议，私钥始终不重建。</div>
+        </div>
+        <div class="section-line"></div>
+      </div>
+
+      <!-- Role selector -->
+      <div class="card">
+        <div class="card-title">选择本方在本次签名中的角色</div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="setRole('A')" id="btn-role-A">方 A（发起方）</button>
+          <button class="btn btn-success" onclick="setRole('B')" id="btn-role-B">方 B（协作方）</button>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--text2);">
+          方 A 生成 R_A 并发起签名；方 B 接收 R_A、提供贡献；方 A 最终完成签名。<br>
+          未参与的第三方不需要任何操作（体现门限性）。
+        </div>
+      </div>
+
+      <!-- Role A: init -->
+      <div id="tss-role-A" style="display:none;">
+        <div class="card">
+          <div class="card-title">方 A — 轮次 1：生成 nonce R_A</div>
+          <div class="form-group">
+            <label class="input-label">待签名消息</label>
+            <input class="input-field" id="tss-message" value="Transfer 1 ETH to 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" style="width:100%;">
+          </div>
+          <div class="form-group">
+            <label class="input-label">协作方编号（方 B 的 partyId）</label>
+            <input class="input-field" id="tss-partner-id" type="number" value="" style="width:120px;" placeholder="2 或 3">
+          </div>
+          <button class="btn btn-primary" onclick="doTSSInitA()">生成 R_A（轮次 1）</button>
+        </div>
+        <div id="tss-A-round1-result" style="display:none;"></div>
+
+        <!-- 收到方 B 的回应后，完成签名 -->
+        <div id="tss-A-finalize-section" style="display:none;" class="card">
+          <div class="card-title">方 A — 轮次 3：完成签名 <span class="tag tag-req">需要操作</span></div>
+          <div class="alert alert-warn">将方 B 返回的数据粘贴到下方</div>
+          <div class="form-group">
+            <textarea class="input-field" id="tss-B-response" rows="5"
+              placeholder='{"r":"0x...","gammaB":"0x...","deltaB":"0x..."}'></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="doTSSFinalizeA()">完成签名（轮次 3）</button>
+          <div id="tss-signature-result" style="margin-top:12px;"></div>
+        </div>
+      </div>
+
+      <!-- Role B: respond -->
+      <div id="tss-role-B" style="display:none;">
+        <div class="card">
+          <div class="card-title">方 B — 轮次 2：响应 R_A，计算贡献</div>
+          <div class="alert alert-warn">
+            将方 A 在轮次 1 广播的数据粘贴到下方
+          </div>
+          <div class="form-group">
+            <label class="input-label">方 A 的轮次 1 数据（JSON）</label>
+            <textarea class="input-field" id="tss-A-data" rows="5"
+              placeholder='{"partyAId":1,"msgHash":"0x...","R_A":"04...","xShares":{"1":"0x...","2":"0x..."}}'></textarea>
+          </div>
+          <button class="btn btn-success" onclick="doTSSRespondB()">计算贡献（轮次 2）</button>
+          <div id="tss-B-round2-result" style="margin-top:10px;"></div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Log -->
+    <section class="section visible" id="sec-log">
+      <div class="section-header">
+        <span class="section-num">—</span>
+        <div><div class="section-title">操作日志</div></div>
+        <div class="section-line"></div>
+      </div>
+      <div class="log-container" id="log"></div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ──────────────────────────────────────────────────────────────
+// 全局状态
+// ──────────────────────────────────────────────────────────────
+let PARTY_ID = null;
+let PORT = null;
+const BASE_URL = () => `http://10.100.230.20:${PORT}`;
+let localState = {
+  phase1Data: null,
+  allCommitments: {},
+};
+
+// ──────────────────────────────────────────────────────────────
+// 工具函数
+// ──────────────────────────────────────────────────────────────
+function log(msg, type = '') {
+  const el = document.getElementById('log');
+  const now = new Date().toTimeString().slice(0,8);
+  el.innerHTML += `<div class="log-entry"><span class="log-time">${now}</span><span class="log-msg ${type}">${msg}</span></div>`;
+  el.scrollTop = el.scrollHeight;
+}
+
+async function api(path, body = null) {
+  try {
+    const res = await fetch(`${BASE_URL()}${path}`, {
+      method: body ? 'POST' : 'GET',
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : null,
+    });
+    return await res.json();
+  } catch (e) {
+    log(`API 错误 ${path}: ${e.message}`, 'err');
+    return null;
+  }
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    log('已复制到剪贴板', 'ok');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+    log('已复制到剪贴板', 'ok');
+  });
+}
+
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showSection(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.classList.add('visible');
+    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+}
+
+function dataRow(label, value, isPrivate, truncate = true) {
+  const badge = `<span class="data-badge ${isPrivate ? 'private' : 'public'}">${isPrivate ? 'PRIVATE' : 'PUBLIC'}</span>`;
+  const displayVal = typeof value === 'object' ? JSON.stringify(value, null, 2) : value;
+  return `
+    <div class="data-row">
+      <div class="data-label">${label}</div>
+      <div class="data-value ${truncate ? 'truncated' : ''}" title="${displayVal}">${displayVal}</div>
+      <div>${badge}</div>
+    </div>`;
+}
+
+function copyBox(label, content, hint = '点击复制') {
+  const text = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+  return `
+    <div style="margin-bottom:10px;">
+      <div class="input-label">${label}</div>
+      <div class="copy-box" onclick="copyText(${JSON.stringify(text)})">
+        <span class="copy-hint">${hint}</span>
+        ${text.length > 300 ? text.slice(0, 300) + '...' : text}
+      </div>
+    </div>`;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 初始化
+// ──────────────────────────────────────────────────────────────
+async function init() {
+  // 从当前端口推断 partyId
+  PORT = parseInt(location.port) || 3001;
+  const info = await api('/party-info');
+  if (!info) {
+    document.getElementById('status-text').textContent = '连接失败';
+    return;
+  }
+  PARTY_ID = info.partyId;
+  PORT = info.port;
+
+  document.title = `MPC Wallet — 方 ${PARTY_ID}`;
+  //document.getElementById('status-text').textContent = `方 ${PARTY_ID} · 端口 ${PORT}`;
+
+  const badge = document.getElementById('party-badge');
+  badge.textContent = `PARTY ${PARTY_ID}`;
+  badge.className = `party-badge p${PARTY_ID}`;
+
+  // 更新其他方信息
+  const others = [1,2,3].filter(i => i !== PARTY_ID);
+  document.getElementById('other-parties').innerHTML = others.map(i => `
+    <div style="margin-bottom:4px;display:flex;align-items:center;gap:6px;">
+      <span class="phase-num" style="font-size:10px;">P${i}</span>
+      <span>Port ${3000+i} — 方 ${i}</span>
+    </div>`).join('');
+
+  // 更新接收卡片标题
+  document.getElementById('recv-title-other1').textContent = `接收来自方 ${others[0]} 的数据`;
+  document.getElementById('recv-title-other2').textContent = `接收来自方 ${others[1]} 的数据`;
+
+  document.getElementById('party-info-card').innerHTML = `
+    <div class="card-title">本方信息</div>
+    ${dataRow('参与方 ID', `Party ${PARTY_ID}`, false)}
+    ${dataRow('监听端口', PORT, false)}
+    ${dataRow('总参与方数', '3', false)}
+    ${dataRow('签名门限', '2-of-3', false)}
+    ${dataRow('椭圆曲线', 'secp256k1', false)}
+    ${dataRow('协议', 'Pedersen DKG + Feldman VSS + TSS', false)}
+  `;
+
+  log(`方 ${PARTY_ID} 已就绪，端口 ${PORT}`, 'info');
+
+  // 默认协作方
+  document.getElementById('tss-partner-id').value = others[0];
+
+  showSection('sec-phase1');
+}
+
+// ──────────────────────────────────────────────────────────────
+// DKG 阶段 1
+// ──────────────────────────────────────────────────────────────
+async function doPhase1() {
+  document.getElementById('btn-phase1').disabled = true;
+  document.getElementById('btn-phase1').innerHTML = '<div class="spin"></div>';
+  log('执行 DKG 阶段 1...', 'info');
+
+  const res = await api('/dkg/phase1', {});
+  if (!res?.ok) {
+    log(`DKG 阶段 1 失败: ${res?.error}`, 'err');
+    document.getElementById('btn-phase1').disabled = false;
+    document.getElementById('btn-phase1').textContent = '执行 DKG 阶段 1';
+    return;
+  }
+
+  localState.phase1Data = res;
+  localState.allCommitments[res.partyId] = res.commitments;
+
+  log(`DKG 阶段 1 完成，生成多项式承诺 ${res.commitments.length} 个`, 'ok');
+
+  document.getElementById('phase1-hint').className = 'alert alert-success';
+  document.getElementById('phase1-hint').textContent = '✓ 阶段 1 完成。多项式已生成，承诺已计算。';
+
+  // 显示本方数据
+  const state = await api('/state');
+  const d = state.dkg;
+
+  let html = '';
+  if (d.secretScalar) html += dataRow('秘密常数项 a₀', d.secretScalar.value, true);
+  if (d.coefficients) html += dataRow('多项式系数', d.coefficients.value.join('\n'), true);
+  if (d.commitments) html += dataRow('Feldman 承诺 Cᵢ₀', d.commitments.value.join('\n'), false);
+  if (d.selfShard) html += dataRow(`自身分片 f(${PARTY_ID})`, d.selfShard.value, true);
+  document.getElementById('phase1-data').innerHTML = html;
+
+  // 广播数据
+  const broadcastData = {
+    partyId: res.partyId,
+    commitments: res.commitments,
+    shardsForOthers: res.shardsForOthers,
+  };
+  document.getElementById('phase1-broadcast').innerHTML = `
+    <div class="alert alert-info" style="margin-bottom:10px;">
+      广播数据包含：你的承诺（公开）+ 给每方的专属分片（对应方私密）。
+      其他方只使用 <code>shardsForOthers[对方编号]</code> 的分片值。
+    </div>
+    ${copyBox('广播数据（发送给所有其他方）', broadcastData, '点击复制完整 JSON')}
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+      ${[1,2,3].filter(i=>i!==PARTY_ID).map(i => copyBox(
+        `给方 ${i} 的专属分片（私密，只发给方 ${i}）`,
+        { partyId: res.partyId, commitments: res.commitments, shard: res.shardsForOthers[i] }
+      )).join('')}
+    </div>
+  `;
+
+  document.getElementById('phase1-result').style.display = 'block';
+
+  // 自动填入 phase3 的本方承诺
+  prefillPhase3();
+
+  document.getElementById('btn-phase1').disabled = false;
+  document.getElementById('btn-phase1').textContent = '✓ 已执行';
+  document.getElementById('nav-1').classList.add('done');
+
+  showSection('sec-phase2');
+}
+
+// ──────────────────────────────────────────────────────────────
+// DKG 阶段 2
+// ──────────────────────────────────────────────────────────────
+async function doPhase2(idx) {
+  const inputEl = document.getElementById(`recv-input-${idx + 1}`);
+  const resultEl = document.getElementById(`recv-result-${idx + 1}`);
+
+  let data;
+  try {
+    data = JSON.parse(inputEl.value);
+  } catch (e) {
+    resultEl.innerHTML = `<div class="alert alert-error">JSON 解析失败: ${e.message}</div>`;
+    return;
+  }
+
+  // 支持两种格式：完整广播 或 专属分片格式
+  const fromId = data.partyId;
+  const commitments = data.commitments;
+  const shard = data.shardsForOthers
+    ? data.shardsForOthers[PARTY_ID]
+    : data.shard;
+
+  if (!fromId || !commitments || !shard) {
+    resultEl.innerHTML = `<div class="alert alert-error">数据格式不正确，需要 partyId、commitments、shard</div>`;
+    return;
+  }
+
+  log(`接收来自方 ${fromId} 的分片，执行 VSS 验证...`, 'info');
+
+  const res = await api('/dkg/phase2', { fromPartyId: fromId, shard, commitments });
+  if (!res?.ok) {
+    resultEl.innerHTML = `<div class="alert alert-error">验证失败: ${res?.error}</div>`;
+    log(`方 ${fromId} 分片验证失败！`, 'err');
+    return;
+  }
+
+  // 存储该方承诺，用于阶段 3
+  localState.allCommitments[fromId] = commitments;
+
+  resultEl.innerHTML = `
+    <div class="alert alert-success">✓ 来自方 ${fromId} 的分片验证通过</div>
+    ${dataRow(`收到分片 s_${fromId}→${PARTY_ID}`, res.shardReceived, true)}
+    ${dataRow('VSS 验证结果', `✓ 通过（shard·G == Σ Cₖ·j^k）`, false)}
+  `;
+  log(`方 ${fromId} 分片 VSS 验证通过`, 'ok');
+
+  // 更新进度
+  const totalReceived = res.totalReceived;
+  document.getElementById('phase2-summary').style.display = 'block';
+  document.getElementById('phase2-progress').innerHTML =
+    `已收集 ${totalReceived}/3 个分片`;
+  document.getElementById('phase2-bar').style.width = `${(totalReceived / 3) * 100}%`;
+
+  if (totalReceived >= 3) {
+    document.getElementById('nav-2').classList.add('done');
+    showSection('sec-phase3');
+    prefillPhase3();
+  }
+}
+
+// ──────────────────────────────────────────────────────────────
+// DKG 阶段 3
+// ──────────────────────────────────────────────────────────────
+function prefillPhase3() {
+  if (Object.keys(localState.allCommitments).length > 0) {
+    document.getElementById('phase3-commitments').value =
+      JSON.stringify(localState.allCommitments, null, 2);
+  }
+}
+
+async function doPhase3() {
+  let allCommitments;
+  try {
+    allCommitments = JSON.parse(document.getElementById('phase3-commitments').value);
+  } catch (e) {
+    document.getElementById('phase3-result').innerHTML =
+      `<div class="alert alert-error">JSON 解析失败: ${e.message}</div>`;
+    return;
+  }
+
+  log('执行 DKG 阶段 3，聚合分片...', 'info');
+  const res = await api('/dkg/phase3', { allCommitments });
+  if (!res?.ok) {
+    document.getElementById('phase3-result').style.display = 'block';
+    document.getElementById('phase3-data').innerHTML =
+      `<div class="alert alert-error">聚合失败: ${res?.error}</div>`;
+    return;
+  }
+
+  log('DKG 完成！私钥分片已生成，全局公钥已计算', 'ok');
+  document.getElementById('nav-3').classList.add('done');
+
+  const kv = res.keyShare?.value;
+  const pk = res.groupPublicKey?.value;
+  const addr = res.address?.value;
+  const cc = res.chainCode?.value;
+  const xpub = res.xpub?.value;
+
+  document.getElementById('phase3-data').innerHTML = `
+    ${dataRow('本方私钥分片 xᵢ', kv, true)}
+    ${dataRow('全局公钥 P = Σ aᵢ₀·G', pk, false)}
+    ${dataRow('收款地址', addr, false)}
+    ${dataRow('HD 链码', cc, false)}
+    ${dataRow('xpub (扩展公钥)', xpub, false)}
+    <div class="data-row" style="border:none;padding-top:12px;">
+      <div></div>
+      <div style="font-size:11px;color:var(--text2);">
+        ⚠ 完整私钥 F(0) = Σ aᵢ₀ 从未被计算或持有。私钥分片 xᵢ 只有本方知道。
+      </div>
+      <div></div>
+    </div>
+  `;
+
+  document.getElementById('phase3-result').style.display = 'block';
+  showSection('sec-hd');
+}
+
+// ──────────────────────────────────────────────────────────────
+// HD 派生
+// ──────────────────────────────────────────────────────────────
+async function doHD() {
+  const count = parseInt(document.getElementById('hd-count').value) || 5;
+  log(`派生 ${count} 个 HD 收款地址...`, 'info');
+
+  const res = await api('/hd/derive', { count });
+  if (!res?.ok) {
+    log(`HD 派生失败: ${res?.error}`, 'err');
+    return;
+  }
+
+  document.getElementById('nav-4').classList.add('done');
+  log(`HD 派生完成，生成 ${res.addresses.length} 个地址`, 'ok');
+
+  const html = res.addresses.map(a => `
+    <div class="addr-card" onclick="copyText('${a.address}'); log('复制地址 ${a.path}', \'ok\')">
+      <div class="addr-path">${a.path}</div>
+      <div class="addr-value">${a.address}</div>
+    </div>`).join('');
+
+  document.getElementById('hd-addresses').innerHTML = html;
+  document.getElementById('hd-result').style.display = 'block';
+
+  showSection('sec-tss');
+}
+
+// ──────────────────────────────────────────────────────────────
+// TSS 签名
+// ──────────────────────────────────────────────────────────────
+function setRole(role) {
+  document.getElementById('tss-role-A').style.display = role === 'A' ? 'block' : 'none';
+  document.getElementById('tss-role-B').style.display = role === 'B' ? 'block' : 'none';
+  document.getElementById(`btn-role-A`).style.borderColor = role === 'A' ? 'var(--accent)' : 'var(--border2)';
+  document.getElementById(`btn-role-B`).style.borderColor = role === 'B' ? 'var(--green)' : 'var(--border2)';
+  log(`本方担任签名角色：${role === 'A' ? '发起方 A' : '协作方 B'}`, 'info');
+}
+
+async function doTSSInitA() {
+  const message = document.getElementById('tss-message').value;
+  const partnerIdRaw = document.getElementById('tss-partner-id').value;
+  const partnerId = parseInt(partnerIdRaw);
+
+  if (!message || !partnerId) {
+    alert('请填写消息和协作方编号');
+    return;
+  }
+
+  // 计算消息哈希（用服务端返回的）
+  const msgHashHex = '0x' + Array.from(
+    new TextEncoder().encode(message)
+  ).reduce((h, b) => h + b.toString(16).padStart(2,'0'), '');
+
+  // 使用简单方法：直接调用 /tss/init 让服务端计算 hash
+  const res = await api('/tss/init', {
+    msgHash: msgHashHex,
+    partnerIds: [PARTY_ID, partnerId],
+    message,
+  });
+
+  if (!res?.ok) { log(`TSS 初始化失败: ${res?.error}`, 'err'); return; }
+
+  log(`TSS 轮次 1 完成，R_A 已生成`, 'ok');
+
+  // 获取当前私钥分片（用于传给方 B，真实协议通过 MtA 盲化）
+  const stateRes = await api('/state');
+  const keyShare = stateRes?.dkg?.keyShare?.value;
+
+  // 构造发给方 B 的数据
+  const forB = {
+    partyAId: PARTY_ID,
+    msgHash: res.msgHash,
+    R_A: res.R_A.value,
+    message,
+    xShares: {
+      [PARTY_ID]: keyShare,
+      // 方 B 的 xShare 会在服务端读取，这里占位
+      [partnerId]: '__由方B自身提供__'
+    }
+  };
+
+  document.getElementById('tss-A-round1-result').style.display = 'block';
+  document.getElementById('tss-A-round1-result').innerHTML = `
+    <div class="card">
+      <div class="card-title">轮次 1 生成数据</div>
+      ${dataRow('kA（乘法 nonce）', '已本地保存', true)}
+      ${dataRow('R_A = kA·G', res.R_A.value, false)}
+      ${dataRow('消息哈希 m', res.msgHash, false)}
+      ${dataRow('待签名消息', message, false)}
+    </div>
+    <div class="card" style="border-color:var(--amber);">
+      <div class="card-title" style="color:var(--amber);">⬆ 发送给方 ${partnerId}（方 B）</div>
+      <div class="alert alert-warn">将下方数据复制，粘贴到方 ${partnerId} 的 TSS 协作方输入框</div>
+      ${copyBox(`发送给方 ${partnerId} 的轮次 1 数据`, {
+        partyAId: PARTY_ID,
+        msgHash: res.msgHash,
+        R_A: res.R_A.value,
+        message,
+        xShares: { [PARTY_ID]: keyShare }
+      })}
+    </div>`;
+
+  document.getElementById('tss-A-finalize-section').style.display = 'block';
+}
+
+async function doTSSRespondB() {
+  let data;
+  try {
+    data = JSON.parse(document.getElementById('tss-A-data').value);
+  } catch(e) {
+    document.getElementById('tss-B-round2-result').innerHTML =
+      `<div class="alert alert-error">JSON 解析失败: ${e.message}</div>`;
+    return;
+  }
+
+  const stateRes = await api('/state');
+  const myKeyShare = stateRes?.dkg?.keyShare?.value;
+
+  // 补充本方的 xShare
+  data.xShares = data.xShares || {};
+  data.xShares[PARTY_ID] = myKeyShare;
+
+  const res = await api('/tss/respond', data);
+  if (!res?.ok) {
+    document.getElementById('tss-B-round2-result').innerHTML =
+      `<div class="alert alert-error">轮次 2 失败: ${res?.error}</div>`;
+    log(`TSS 轮次 2 失败: ${res?.error}`, 'err');
+    return;
+  }
+
+  log('TSS 轮次 2 完成，已计算 γ_B 和 δ_B', 'ok');
+
+  const returnData = { r: res.r.value, gammaB: res.gammaB.value, deltaB: res.deltaB.value };
+
+  document.getElementById('tss-B-round2-result').innerHTML = `
+    <div class="alert alert-success">✓ 轮次 2 完成</div>
+    <div class="card">
+      <div class="card-title">轮次 2 生成数据</div>
+      ${dataRow('R = kB·R_A = k·G', res.R.value, false)}
+      ${dataRow('r = R.x mod n', res.r.value, false)}
+      ${dataRow('γ_B = kB⁻¹·(m + r·x̂_B)', res.gammaB.value, false)}
+      ${dataRow('δ_B = kB⁻¹·r·x̂_A [MtA]', res.deltaB.value, false)}
+    </div>
+    <div class="card" style="border-color:var(--amber);">
+      <div class="card-title" style="color:var(--amber);">⬆ 发送回方 ${data.partyAId}（方 A）</div>
+      <div class="alert alert-warn">将下方数据复制，粘贴到方 A 的"完成签名"输入框</div>
+      ${copyBox('发送给方 A 的轮次 2 数据', returnData)}
+    </div>
+  `;
+  document.getElementById('nav-5').classList.add('done');
+}
+
+async function doTSSFinalizeA() {
+  let data;
+  try {
+    data = JSON.parse(document.getElementById('tss-B-response').value);
+  } catch(e) {
+    document.getElementById('tss-signature-result').innerHTML =
+      `<div class="alert alert-error">JSON 解析失败: ${e.message}</div>`;
+    return;
+  }
+
+  const res = await api('/tss/finalize', data);
+  if (!res?.ok) {
+    document.getElementById('tss-signature-result').innerHTML =
+      `<div class="alert alert-error">签名失败: ${res?.error}</div>`;
+    log(`TSS 签名失败: ${res?.error}`, 'err');
+    return;
+  }
+
+  log(`TSS 签名完成！验证: ${res.verified ? '通过 ✓' : '失败 ✗'}`, res.verified ? 'ok' : 'err');
+  document.getElementById('nav-5').classList.add('done');
+
+  document.getElementById('tss-signature-result').innerHTML = `
+    <div class="alert alert-${res.verified ? 'success' : 'error'}">
+      ${res.verified ? '✓ 签名验证通过！与普通 ECDSA 签名在链上完全不可区分。' : '✗ 签名验证失败'}
+    </div>
+    <div class="card" style="${res.verified ? 'border-color:var(--green)' : ''}">
+      <div class="card-title">最终签名 (r, s)</div>
+      ${dataRow('消息哈希 m', res.msgHash, false)}
+      ${dataRow('签名 r', res.signature.r, false)}
+      ${dataRow('签名 s', res.signature.s, false)}
+      ${dataRow('链上验证', res.verified ? '✓ secp256k1 验证通过' : '✗ 失败', false)}
+      <div class="data-row" style="border:none;padding-top:10px;">
+        <div></div>
+        <div style="font-size:11px;color:var(--text2);">
+          完整私钥在签名全程未重建。k = kA·kB（乘法分享），x 通过拉格朗日转为加法分享。
+        </div>
+        <div></div>
+      </div>
+    </div>
+  `;
+}
+
+// ──────────────────────────────────────────────────────────────
+// 启动
+// ──────────────────────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>

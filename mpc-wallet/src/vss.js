@@ -33,13 +33,10 @@ const {
  *   commitments:  对应的椭圆曲线承诺 [a₀G, a₁G, ..., a_{t-1}G]（公开）
  */
 function createPolynomial(secret, threshold) {
-  console.log('创建 VSS 多项式，秘密:', secret);
   // 系数 [a₀=secret, a₁, a₂, ..., a_{t-1}]（均为随机标量）
   const coefficients = [secret];
   for (let i = 1; i < threshold; i++) {
-    const temp =randomScalar();
-    console.log('多项式系数1:', temp);
-    coefficients.push(temp);
+    coefficients.push(randomScalar());
   }
 
   // 承诺 Cⱼ = aⱼ · G
