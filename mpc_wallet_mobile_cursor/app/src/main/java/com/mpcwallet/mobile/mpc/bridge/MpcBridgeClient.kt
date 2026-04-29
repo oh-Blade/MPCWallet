@@ -73,22 +73,27 @@ interface GoBridgeGateway {
 
 class LocalGoBridgeGateway : GoBridgeGateway {
     override fun startKeygenMobile(raw: String): String {
+        NativeBridgeLoader.ensureLoaded()
         return NativeBridgeRuntime.startKeygen(raw)
     }
 
     override fun signTransactionMobile(raw: String): String {
+        NativeBridgeLoader.ensureLoaded()
         return NativeBridgeRuntime.sign(raw)
     }
 
     override fun buildQrPayloadFrameMobile(raw: String): String {
+        NativeBridgeLoader.ensureLoaded()
         return NativeBridgeRuntime.buildQrPayloadFrame(raw)
     }
 
     override fun handleInboundQrFrameMobile(raw: String): String {
+        NativeBridgeLoader.ensureLoaded()
         return NativeBridgeRuntime.handleInboundQrFrame(raw)
     }
 
     override fun nextQrRetryMobile(raw: String): String {
+        NativeBridgeLoader.ensureLoaded()
         return NativeBridgeRuntime.nextQrRetry(raw)
     }
 }

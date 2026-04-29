@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import com.mpcwallet.mobile.mpc.bridge.DemoGoBridgeGateway
 import com.mpcwallet.mobile.mpc.bridge.MpcBridgeClient
 import com.mpcwallet.mobile.mpc.engine.TssLibBridgeEngine
@@ -55,11 +56,18 @@ class MainActivity : AppCompatActivity() {
                 }.start()
             }
         }
+        val openScanSessionButton = Button(this).apply {
+            text = getString(R.string.action_open_scan_session)
+            setOnClickListener {
+                startActivity(Intent(this@MainActivity, ScanSessionActivity::class.java))
+            }
+        }
 
         val rootLayout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(24, 24, 24, 24)
             addView(runDemoButton)
+            addView(openScanSessionButton)
             addView(statusTextView)
         }
         setContentView(rootLayout)

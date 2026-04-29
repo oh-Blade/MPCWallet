@@ -3,7 +3,16 @@
     <string name="app_name">MPC Wallet</string>
     <string name="status_bootstrap">MPC wallet bootstrap initialized</string>
     <string name="action_run_demo_round">Run MPC Demo Round</string>
+    <string name="action_open_scan_session">Open Scan Session</string>
+    <string name="action_start_scan">Start Camera Scan</string>
+    <string name="action_process_demo_frame">Process Demo Frame</string>
     <string name="status_demo_running">Demo round running...</string>
     <string name="status_demo_success">Demo completed: %1$s</string>
     <string name="status_demo_failed">Demo failed: %1$s</string>
+    <string name="status_scan_idle">Scan session idle.</string>
+    <string name="status_camera_permission_denied">Camera permission denied.</string>
+    <string name="status_scan_camera_ready">Camera is ready for QR scan.</string>
+    <string name="status_scan_payload_accepted">Payload accepted. Sign status: %1$s</string>
+    <string name="status_scan_ack_accepted">ACK accepted for %1$s</string>
+    <string name="status_scan_replay_ignored">Replay ignored for %1$s</string>
 </resources>
