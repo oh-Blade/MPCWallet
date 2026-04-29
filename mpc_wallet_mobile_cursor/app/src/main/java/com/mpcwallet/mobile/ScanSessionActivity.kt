@@ -8,12 +8,20 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.common.HybridBinarizer
 import com.mpcwallet.mobile.mpc.bridge.DemoGoBridgeGateway
 import com.mpcwallet.mobile.mpc.bridge.MpcBridgeClient
 import timber.log.Timber
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class ScanSessionActivity : AppCompatActivity() {
     private enum class ScanSessionState {
@@ -28,14 +36,18 @@ class ScanSessionActivity : AppCompatActivity() {
         private const val SESSION_ID: String = "scan_demo_session"
         private const val FRAME_ID: String = "scan_demo_1"
         private const val ACK_TIMEOUT_MS: Long = 12_000L
+        private const val SCAN_THROTTLE_MS: Long = 1_000L
     }
 
     private val bridgeClient = MpcBridgeClient(DemoGoBridgeGateway())
 
     private lateinit var statusText: TextView
     private lateinit var previewView: PreviewView
+    private lateinit var cameraExecutor: ExecutorService
     private var sessionState: ScanSessionState = ScanSessionState.IDLE
     private var ackDeadlineMs: Long = 0L
+    private var lastScannedPayload: String = ""
+    private var lastScanAtMs: Long = 0L
 
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -49,6 +61,7 @@ class ScanSessionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scan_session)
+        cameraExecutor = Executors.newSingleThreadExecutor()
 
         statusText = findViewById(R.id.scanStatusText)
         previewView = findViewById(R.id.cameraPreview)
@@ -63,6 +76,11 @@ class ScanSessionActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        cameraExecutor.shutdown()
+    }
+
     private fun ensureCameraPermissionAndStart() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCameraPreview()
@@ -72,8 +90,8 @@ class ScanSessionActivity : AppCompatActivity() {
     }
 
     /**
-     * WHY: CameraX preview binding is introduced now to validate runtime permissions/lifecycle
-     * before wiring the real QR analyzer and MPC payload ingestion.
+     * WHY: Preview + analyzer are bound together so decoded QR payloads enter the same
+     * bridge-backed MPC flow used by manual demo paths, keeping behavior consistent.
      */
     private fun startCameraPreview() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
@@ -81,14 +99,90 @@ class ScanSessionActivity : AppCompatActivity() {
             val cameraProvider = cameraProviderFuture.get()
             val preview = androidx.camera.core.Preview.Builder().build()
             preview.surfaceProvider = previewView.surfaceProvider
+            val analysis = ImageAnalysis.Builder().build().apply {
+                setAnalyzer(cameraExecutor) { imageProxy ->
+                    tryDecodeQr(imageProxy)
+                }
+            }
 
             val selector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.unbindAll()
-            cameraProvider.bindToLifecycle(this, selector, preview)
+            cameraProvider.bindToLifecycle(this, selector, preview, analysis)
             sessionState = ScanSessionState.SCANNING
             statusText.text = getString(R.string.status_scan_camera_ready_with_state, sessionState.name)
             Timber.i("event=scan_camera_started status=ok")
         }, ContextCompat.getMainExecutor(this))
+    }
+
+    private fun tryDecodeQr(imageProxy: ImageProxy) {
+        val mediaImage = imageProxy.image ?: run {
+            imageProxy.close()
+            return
+        }
+        val buffer = mediaImage.planes.first().buffer
+        val bytes = ByteArray(buffer.remaining())
+        buffer.get(bytes)
+
+        val source = PlanarYUVLuminanceSource(
+            bytes,
+            imageProxy.width,
+            imageProxy.height,
+            0,
+            0,
+            imageProxy.width,
+            imageProxy.height,
+            false
+        )
+        val bitmap = BinaryBitmap(HybridBinarizer(source))
+        try {
+            val decoded = MultiFormatReader().decode(bitmap).text
+            onQrDecoded(decoded)
+        } catch (_: Throwable) {
+            // Ignore no-result/parse errors and continue scanning.
+        } finally {
+            imageProxy.close()
+        }
+    }
+
+    private fun onQrDecoded(rawFrame: String) {
+        val nowMs = System.currentTimeMillis()
+        if (rawFrame == lastScannedPayload && nowMs - lastScanAtMs < SCAN_THROTTLE_MS) {
+            return
+        }
+        lastScannedPayload = rawFrame
+        lastScanAtMs = nowMs
+        runOnUiThread {
+            statusText.text = getString(R.string.status_scan_qr_detected)
+        }
+        processInboundFromScan(rawFrame)
+    }
+
+    private fun processInboundFromScan(rawFrame: String) {
+        try {
+            val inbound = bridgeClient.handleInboundQrFrame(rawFrame)
+            val message = when (inbound.type) {
+                "payload" -> {
+                    sessionState = ScanSessionState.WAITING_ACK
+                    ackDeadlineMs = System.currentTimeMillis() + ACK_TIMEOUT_MS
+                    if (inbound.ackFrameRaw != null) {
+                        bridgeClient.handleInboundQrFrame(inbound.ackFrameRaw)
+                        sessionState = ScanSessionState.ACK_RECEIVED
+                    }
+                    getString(R.string.status_scan_inbound_processed, inbound.type, sessionState.name)
+                }
+                "ack" -> {
+                    sessionState = ScanSessionState.ACK_RECEIVED
+                    getString(R.string.status_scan_inbound_processed, inbound.type, sessionState.name)
+                }
+                else -> getString(R.string.status_scan_inbound_processed, inbound.type, sessionState.name)
+            }
+            runOnUiThread { statusText.text = message }
+        } catch (error: Throwable) {
+            Timber.e(error, "event=scan_qr_process_failed")
+            runOnUiThread {
+                statusText.text = getString(R.string.status_scan_inbound_failed, error.message.orEmpty())
+            }
+        }
     }
 
     private fun runDemoInboundProcessing() {
