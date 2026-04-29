@@ -30,4 +30,22 @@
     <string name="status_scan_inbound_processed">Inbound frame type: %1$s; State: %2$s</string>
     <string name="status_scan_inbound_failed">Inbound processing failed: %1$s</string>
     <string name="status_scan_invalid_frame">Frame rejected: %1$s</string>
+    <string name="title_onboarding">Secure MPC Wallet Setup</string>
+    <string name="subtitle_onboarding">Create a new wallet, join an existing threshold group, or restore from backup.</string>
+    <string name="action_create_wallet">Create Wallet</string>
+    <string name="action_join_wallet">Join Wallet</string>
+    <string name="action_restore_wallet">Restore Wallet</string>
+    <string name="title_create_wallet">Create MPC Wallet</string>
+    <string name="label_threshold">Threshold (t)</string>
+    <string name="label_parties">Total Parties (n)</string>
+    <string name="action_generate_invite">Generate Invite Session</string>
+    <string name="title_join_wallet">Join Wallet Session</string>
+    <string name="subtitle_join_wallet">Scan an invitation QR and complete participant confirmation.</string>
+    <string name="action_scan_invite">Scan Invitation QR</string>
+    <string name="action_confirm_join">Confirm and Join</string>
+    <string name="title_restore_wallet">Restore Wallet</string>
+    <string name="subtitle_restore_wallet">Recover device share from secure backup and re-bind session.</string>
+    <string name="action_complete_restore">Complete Restore</string>
+    <string name="title_wallet_home">Wallet Home</string>
+    <string name="status_wallet_profile">Mode: %1$s | Threshold: %2$d/%3$d</string>
 </resources>

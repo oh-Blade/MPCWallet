@@ -11,6 +11,21 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
         <activity
+            android:name=".WalletHomeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RestoreWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".JoinWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".CreateWalletActivity"
+            android:exported="false" />
+        <activity
+            android:name=".WalletOnboardingActivity"
+            android:exported="false" />
+        <activity
             android:name=".ScanSessionActivity"
             android:exported="false" />
         <activity

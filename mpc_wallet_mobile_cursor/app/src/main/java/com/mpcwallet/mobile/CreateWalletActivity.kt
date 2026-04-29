@@ -1,0 +1,37 @@
+package com.mpcwallet.mobile
+
+import android.content.Intent
+import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.Spinner
+import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.button.MaterialButton
+import com.mpcwallet.mobile.wallet.WalletProfileStore
+
+class CreateWalletActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_create_wallet)
+
+        val thresholdSpinner: Spinner = findViewById(R.id.thresholdSpinner)
+        val partiesSpinner: Spinner = findViewById(R.id.partiesSpinner)
+        thresholdSpinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            listOf("1", "2", "3")
+        )
+        partiesSpinner.adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_dropdown_item,
+            listOf("2", "3", "5")
+        )
+
+        findViewById<MaterialButton>(R.id.generateInviteButton).setOnClickListener {
+            val threshold = thresholdSpinner.selectedItem.toString().toInt()
+            val parties = partiesSpinner.selectedItem.toString().toInt()
+            WalletProfileStore(this).saveWalletProfile(threshold, parties, mode = "creator")
+            startActivity(Intent(this, WalletHomeActivity::class.java))
+            finish()
+        }
+    }
+}
