@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.material.button.MaterialButton
+import com.mpcwallet.mobile.wallet.SessionCoordinationService
 import com.mpcwallet.mobile.wallet.WalletProfileStore
 
 class JoinWalletActivity : AppCompatActivity() {
@@ -35,6 +36,7 @@ class JoinWalletActivity : AppCompatActivity() {
             val pending = store.getPendingCreation()
             if (pending.active && scannedSessionId == pending.sessionId) {
                 store.incrementPendingJoinedParties(scannedSessionId)
+                SessionCoordinationService.incrementJoin(scannedSessionId)
             }
             val threshold = if (pending.threshold > 0) pending.threshold else 2
             val parties = if (pending.parties > 0) pending.parties else 3

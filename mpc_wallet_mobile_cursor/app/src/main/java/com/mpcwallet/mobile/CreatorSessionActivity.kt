@@ -1,11 +1,18 @@
 package com.mpcwallet.mobile
 
 import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.MultiFormatWriter
 import com.google.android.material.button.MaterialButton
+import com.mpcwallet.mobile.wallet.InvitePayload
+import com.mpcwallet.mobile.wallet.SessionCoordinationService
 import com.mpcwallet.mobile.wallet.WalletProfileStore
+import kotlinx.serialization.json.Json
 
 class CreatorSessionActivity : AppCompatActivity() {
     companion object {
@@ -14,14 +21,17 @@ class CreatorSessionActivity : AppCompatActivity() {
 
     private lateinit var store: WalletProfileStore
     private lateinit var inviteCodeText: TextView
+    private lateinit var inviteQrImage: ImageView
     private lateinit var sessionStateText: TextView
     private lateinit var completeButton: MaterialButton
+    private val json = Json { ignoreUnknownKeys = true }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_creator_session)
         store = WalletProfileStore(this)
         inviteCodeText = findViewById(R.id.inviteCodeText)
+        inviteQrImage = findViewById(R.id.inviteQrImage)
         sessionStateText = findViewById(R.id.sessionStateText)
         completeButton = findViewById(R.id.completeCreationButton)
 
@@ -57,14 +67,37 @@ class CreatorSessionActivity : AppCompatActivity() {
      */
     private fun renderSessionState() {
         val pending = store.getPendingCreation()
-        inviteCodeText.text = getString(R.string.status_creator_invite_code, pending.sessionId)
+        val sessionState = SessionCoordinationService.getSession(pending.sessionId)
+        if (sessionState != null && sessionState.joinedParties != pending.joinedParties) {
+            store.updatePendingJoinedParties(sessionState.joinedParties)
+        }
+        val updatedPending = store.getPendingCreation()
+        val invitePayload = InvitePayload(
+            sessionId = updatedPending.sessionId,
+            threshold = updatedPending.threshold,
+            parties = updatedPending.parties
+        )
+        inviteQrImage.setImageBitmap(renderQrBitmap(json.encodeToString(InvitePayload.serializer(), invitePayload)))
+        inviteCodeText.text = getString(R.string.status_creator_invite_code, updatedPending.sessionId)
         sessionStateText.text = getString(
             R.string.status_creator_session_progress,
-            pending.sessionId,
-            pending.joinedParties,
-            pending.parties,
-            pending.threshold
+            updatedPending.sessionId,
+            updatedPending.joinedParties,
+            updatedPending.parties,
+            updatedPending.threshold
         )
-        completeButton.isEnabled = pending.active && pending.joinedParties >= pending.parties
+        completeButton.isEnabled = updatedPending.active && updatedPending.joinedParties >= updatedPending.parties
+    }
+
+    private fun renderQrBitmap(content: String): Bitmap {
+        val size = 600
+        val bitMatrix = MultiFormatWriter().encode(content, BarcodeFormat.QR_CODE, size, size)
+        val pixels = IntArray(size * size)
+        for (y in 0 until size) {
+            for (x in 0 until size) {
+                pixels[y * size + x] = if (bitMatrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt()
+            }
+        }
+        return Bitmap.createBitmap(pixels, size, size, Bitmap.Config.ARGB_8888)
     }
 }

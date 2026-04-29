@@ -22,6 +22,7 @@ import com.mpcwallet.mobile.mpc.bridge.DemoGoBridgeGateway
 import com.mpcwallet.mobile.mpc.bridge.MobileBridgeContract
 import com.mpcwallet.mobile.mpc.bridge.MpcBridgeClient
 import com.mpcwallet.mobile.mpc.bridge.QrWireFramePayload
+import com.mpcwallet.mobile.wallet.InvitePayload
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.util.concurrent.ExecutorService
@@ -168,11 +169,28 @@ class ScanSessionActivity : AppCompatActivity() {
         runOnUiThread {
             statusText.text = getString(R.string.status_scan_qr_detected)
         }
-        val validated = validateInboundFrameOrNull(rawFrame, nowMs)
-        if (validated == null) {
-            return
+        if (scanMode == MODE_JOIN) {
+            val invite = tryParseInvitePayload(rawFrame)
+            if (invite != null) {
+                setResult(RESULT_OK, Intent().putExtra(EXTRA_SESSION_ID, invite.sessionId))
+                finish()
+                return
+            }
+        } else {
+            val validated = validateInboundFrameOrNull(rawFrame, nowMs)
+            if (validated == null) {
+                return
+            }
+            processInboundFromScan(rawFrame)
         }
-        processInboundFromScan(rawFrame)
+    }
+
+    private fun tryParseInvitePayload(rawFrame: String): InvitePayload? {
+        return try {
+            strictJson.decodeFromString(InvitePayload.serializer(), rawFrame)
+        } catch (_: Throwable) {
+            null
+        }
     }
 
     /**

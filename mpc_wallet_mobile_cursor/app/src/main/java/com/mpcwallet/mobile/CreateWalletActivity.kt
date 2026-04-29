@@ -6,6 +6,7 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import com.mpcwallet.mobile.wallet.SessionCoordinationService
 import com.mpcwallet.mobile.wallet.WalletProfileStore
 
 class CreateWalletActivity : AppCompatActivity() {
@@ -30,6 +31,11 @@ class CreateWalletActivity : AppCompatActivity() {
             val threshold = thresholdSpinner.selectedItem.toString().toInt()
             val parties = partiesSpinner.selectedItem.toString().toInt()
             val sessionId = "sess_${System.currentTimeMillis()}"
+            SessionCoordinationService.createSession(
+                sessionId = sessionId,
+                threshold = threshold,
+                parties = parties
+            )
             WalletProfileStore(this).savePendingCreation(
                 sessionId = sessionId,
                 threshold = threshold,

@@ -26,6 +26,14 @@
         android:layout_marginTop="10dp"
         android:text="@string/status_bootstrap" />
 
+    <ImageView
+        android:id="@+id/inviteQrImage"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="12dp"
+        android:contentDescription="@string/desc_invite_qr" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/refreshStatusButton"
         android:layout_width="match_parent"
