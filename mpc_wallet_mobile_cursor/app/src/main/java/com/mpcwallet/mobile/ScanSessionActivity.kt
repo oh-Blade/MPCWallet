@@ -13,15 +13,29 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import com.mpcwallet.mobile.mpc.bridge.DemoGoBridgeGateway
 import com.mpcwallet.mobile.mpc.bridge.MpcBridgeClient
-import com.mpcwallet.mobile.mpc.qr.OfflineQrTransport
 import timber.log.Timber
 
 class ScanSessionActivity : AppCompatActivity() {
-    private val qrTransport = OfflineQrTransport()
+    private enum class ScanSessionState {
+        IDLE,
+        SCANNING,
+        WAITING_ACK,
+        ACK_RECEIVED,
+        RETRY_EXHAUSTED
+    }
+
+    companion object {
+        private const val SESSION_ID: String = "scan_demo_session"
+        private const val FRAME_ID: String = "scan_demo_1"
+        private const val ACK_TIMEOUT_MS: Long = 12_000L
+    }
+
     private val bridgeClient = MpcBridgeClient(DemoGoBridgeGateway())
 
     private lateinit var statusText: TextView
     private lateinit var previewView: PreviewView
+    private var sessionState: ScanSessionState = ScanSessionState.IDLE
+    private var ackDeadlineMs: Long = 0L
 
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -71,34 +85,65 @@ class ScanSessionActivity : AppCompatActivity() {
             val selector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(this, selector, preview)
-            statusText.text = getString(R.string.status_scan_camera_ready)
+            sessionState = ScanSessionState.SCANNING
+            statusText.text = getString(R.string.status_scan_camera_ready_with_state, sessionState.name)
             Timber.i("event=scan_camera_started status=ok")
         }, ContextCompat.getMainExecutor(this))
     }
 
     private fun runDemoInboundProcessing() {
-        val frame = OfflineQrTransport.TransportFrame(
-            frameId = "scan_demo_1",
-            sessionId = "scan_demo_session",
-            sequence = 1,
+        val outboundRaw = bridgeClient.buildQrPayloadFrame(
+            sessionId = SESSION_ID,
+            frameId = FRAME_ID,
             payload = "demo_round_payload",
-            createdAtMs = System.currentTimeMillis()
+            sequence = 1
         )
-        val raw = qrTransport.encodeFrame(frame)
-        val result = qrTransport.handleInboundFrame(raw)
+        sessionState = ScanSessionState.WAITING_ACK
+        ackDeadlineMs = System.currentTimeMillis() + ACK_TIMEOUT_MS
+
+        val inbound = bridgeClient.handleInboundQrFrame(outboundRaw)
+        val nowMs = System.currentTimeMillis()
+        if (sessionState == ScanSessionState.WAITING_ACK && nowMs > ackDeadlineMs) {
+            sessionState = ScanSessionState.RETRY_EXHAUSTED
+            statusText.text = getString(R.string.status_scan_ack_timeout, sessionState.name)
+            return
+        }
+
+        if (inbound.type == "payload" && inbound.ackFrameRaw != null) {
+            bridgeClient.handleInboundQrFrame(inbound.ackFrameRaw)
+            sessionState = ScanSessionState.ACK_RECEIVED
+        }
+
+        var retryCount = 0
+        while (bridgeClient.nextQrRetry(FRAME_ID).shouldRetry) {
+            retryCount += 1
+        }
+        if (retryCount >= 3) {
+            sessionState = ScanSessionState.RETRY_EXHAUSTED
+        }
+
         val retryResponse = bridgeClient.sign(
-            sessionId = "scan_demo_session",
+            sessionId = SESSION_ID,
             messageHashHex = "cd".repeat(32),
             signerIndices = listOf(0, 1)
         )
 
-        val message = when (result) {
-            is OfflineQrTransport.InboundResult.PayloadAccepted ->
-                getString(R.string.status_scan_payload_accepted, retryResponse.status)
-            is OfflineQrTransport.InboundResult.AckAccepted ->
-                getString(R.string.status_scan_ack_accepted, result.acknowledgedFrameId)
-            is OfflineQrTransport.InboundResult.IgnoredReplay ->
-                getString(R.string.status_scan_replay_ignored, result.frameId)
+        val message = when (inbound.type) {
+            "payload" -> getString(
+                R.string.status_scan_payload_accepted_with_state,
+                retryResponse.status,
+                sessionState.name
+            )
+            "ack" -> getString(
+                R.string.status_scan_ack_accepted_with_state,
+                inbound.acknowledged.orEmpty(),
+                sessionState.name
+            )
+            else -> getString(
+                R.string.status_scan_replay_ignored_with_state,
+                inbound.frameId,
+                sessionState.name
+            )
         }
         statusText.text = message
     }

@@ -55,3 +55,41 @@ data class SignResponsePayload(
 data class NextRetryRequest(
     @SerialName("frameId") val frameId: String
 )
+
+@Serializable
+data class BuildQrFrameRequest(
+    @SerialName("sessionId") val sessionId: String,
+    @SerialName("frameId") val frameId: String,
+    @SerialName("payload") val payload: String,
+    @SerialName("sequence") val sequence: Int
+)
+
+@Serializable
+data class HandleQrFrameRequest(
+    @SerialName("rawFrame") val rawFrame: String
+)
+
+@Serializable
+data class QrInboundResultPayload(
+    @SerialName("type") val type: String,
+    @SerialName("frameId") val frameId: String,
+    @SerialName("ackFrameRaw") val ackFrameRaw: String? = null,
+    @SerialName("acknowledged") val acknowledged: String? = null,
+    @SerialName("shouldProcess") val shouldProcess: Boolean
+)
+
+@Serializable
+data class RetryDecisionPayload(
+    @SerialName("shouldRetry") val shouldRetry: Boolean
+)
+
+@Serializable
+data class QrWireFramePayload(
+    @SerialName("sessionId") val sessionId: String,
+    @SerialName("frameId") val frameId: String,
+    @SerialName("sequence") val sequence: Int,
+    @SerialName("payload") val payload: String,
+    @SerialName("ackFor") val ackFor: String,
+    @SerialName("createdAtMs") val createdAtMs: Long,
+    @SerialName("protocolVersion") val protocolVersion: Int
+)

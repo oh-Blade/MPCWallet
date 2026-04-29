@@ -38,11 +38,41 @@ class DemoGoBridgeGateway : GoBridgeGateway {
     }
 
     override fun buildQrPayloadFrameMobile(raw: String): String {
-        return mobileSuccess(raw)
+        val request = json.decodeFromString(BuildQrFrameRequest.serializer(), raw)
+        val frame = QrWireFramePayload(
+            sessionId = request.sessionId,
+            frameId = request.frameId,
+            sequence = request.sequence,
+            payload = request.payload,
+            ackFor = "",
+            createdAtMs = System.currentTimeMillis(),
+            protocolVersion = MobileBridgeContract.QR_PROTOCOL_VERSION
+        )
+        return mobileSuccess(json.encodeToString(QrWireFramePayload.serializer(), frame))
     }
 
     override fun handleInboundQrFrameMobile(raw: String): String {
-        return mobileSuccess(raw)
+        val request = json.decodeFromString(HandleQrFrameRequest.serializer(), raw)
+        val ackFrame = json.encodeToString(
+            QrWireFramePayload.serializer(),
+            QrWireFramePayload(
+                sessionId = "scan_demo_session",
+                frameId = "ack_demo_1",
+                sequence = 1,
+                payload = "",
+                ackFor = "scan_demo_1",
+                createdAtMs = System.currentTimeMillis(),
+                protocolVersion = MobileBridgeContract.QR_PROTOCOL_VERSION
+            )
+        )
+        val inbound = QrInboundResultPayload(
+            type = if (request.rawFrame.contains("\"ackFor\":\"\"")) "payload" else "ack",
+            frameId = "scan_demo_1",
+            ackFrameRaw = ackFrame,
+            acknowledged = "scan_demo_1",
+            shouldProcess = true
+        )
+        return mobileSuccess(json.encodeToString(QrInboundResultPayload.serializer(), inbound))
     }
 
     override fun nextQrRetryMobile(raw: String): String {
@@ -50,7 +80,12 @@ class DemoGoBridgeGateway : GoBridgeGateway {
         val current = qrRetries[request.frameId] ?: 0
         val shouldRetry = current < 3
         qrRetries[request.frameId] = current + 1
-        return mobileSuccess(json.encodeToString(mapOf("shouldRetry" to shouldRetry)))
+        return mobileSuccess(
+            json.encodeToString(
+                RetryDecisionPayload.serializer(),
+                RetryDecisionPayload(shouldRetry = shouldRetry)
+            )
+        )
     }
 
     private fun mobileSuccess(data: String): String {

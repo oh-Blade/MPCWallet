@@ -11,8 +11,9 @@
     <string name="status_demo_failed">Demo failed: %1$s</string>
     <string name="status_scan_idle">Scan session idle.</string>
     <string name="status_camera_permission_denied">Camera permission denied.</string>
-    <string name="status_scan_camera_ready">Camera is ready for QR scan.</string>
-    <string name="status_scan_payload_accepted">Payload accepted. Sign status: %1$s</string>
-    <string name="status_scan_ack_accepted">ACK accepted for %1$s</string>
-    <string name="status_scan_replay_ignored">Replay ignored for %1$s</string>
+    <string name="status_scan_camera_ready_with_state">Camera is ready for QR scan. State: %1$s</string>
+    <string name="status_scan_payload_accepted_with_state">Payload accepted. Sign status: %1$s; State: %2$s</string>
+    <string name="status_scan_ack_accepted_with_state">ACK accepted for %1$s; State: %2$s</string>
+    <string name="status_scan_replay_ignored_with_state">Replay ignored for %1$s; State: %2$s</string>
+    <string name="status_scan_ack_timeout">ACK timeout reached. State: %1$s</string>
 </resources>

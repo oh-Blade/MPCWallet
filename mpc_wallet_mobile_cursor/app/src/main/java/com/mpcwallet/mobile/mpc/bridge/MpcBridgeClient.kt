@@ -52,6 +52,37 @@ class MpcBridgeClient(
         return parsed
     }
 
+    fun buildQrPayloadFrame(sessionId: String, frameId: String, payload: String, sequence: Int): String {
+        val request = BuildQrFrameRequest(
+            sessionId = sessionId,
+            frameId = frameId,
+            payload = payload,
+            sequence = sequence
+        )
+        val rawRequest = json.encodeToString(BuildQrFrameRequest.serializer(), request)
+        val rawResult = goBridge.buildQrPayloadFrameMobile(rawRequest)
+        val result = decodeMobileResult(rawResult)
+        return result.data ?: error("missing buildQrPayloadFrame response data")
+    }
+
+    fun handleInboundQrFrame(rawFrame: String): QrInboundResultPayload {
+        val request = HandleQrFrameRequest(rawFrame = rawFrame)
+        val rawRequest = json.encodeToString(HandleQrFrameRequest.serializer(), request)
+        val rawResult = goBridge.handleInboundQrFrameMobile(rawRequest)
+        val result = decodeMobileResult(rawResult)
+        val data = result.data ?: error("missing handleInboundQrFrame response data")
+        return json.decodeFromString(QrInboundResultPayload.serializer(), data)
+    }
+
+    fun nextQrRetry(frameId: String): RetryDecisionPayload {
+        val request = NextRetryRequest(frameId = frameId)
+        val rawRequest = json.encodeToString(NextRetryRequest.serializer(), request)
+        val rawResult = goBridge.nextQrRetryMobile(rawRequest)
+        val result = decodeMobileResult(rawResult)
+        val data = result.data ?: error("missing nextQrRetry response data")
+        return json.decodeFromString(RetryDecisionPayload.serializer(), data)
+    }
+
     private fun decodeMobileResult(rawResult: String): MobileResult {
         val result = json.decodeFromString(MobileResult.serializer(), rawResult)
         if (!result.success) {
