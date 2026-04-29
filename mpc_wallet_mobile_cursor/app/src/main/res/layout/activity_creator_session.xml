@@ -19,12 +19,19 @@
         android:layout_marginTop="12dp"
         android:text="@string/status_bootstrap" />
 
+    <TextView
+        android:id="@+id/inviteCodeText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/status_bootstrap" />
+
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/incrementJoinButton"
+        android:id="@+id/refreshStatusButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
-        android:text="@string/action_mark_party_joined" />
+        android:text="@string/action_refresh_session_status" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/completeCreationButton"

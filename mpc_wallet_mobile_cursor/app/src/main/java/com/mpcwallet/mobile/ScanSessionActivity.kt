@@ -1,6 +1,7 @@
 package com.mpcwallet.mobile
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
@@ -36,6 +37,10 @@ class ScanSessionActivity : AppCompatActivity() {
     }
 
     companion object {
+        const val EXTRA_SESSION_ID: String = "extra_session_id"
+        const val EXTRA_SCAN_MODE: String = "extra_scan_mode"
+        const val MODE_JOIN: String = "mode_join"
+        const val MODE_GENERIC: String = "mode_generic"
         private const val SESSION_ID: String = "scan_demo_session"
         private const val FRAME_ID: String = "scan_demo_1"
         private const val ACK_TIMEOUT_MS: Long = 12_000L
@@ -53,6 +58,8 @@ class ScanSessionActivity : AppCompatActivity() {
     private var ackDeadlineMs: Long = 0L
     private var lastScannedPayload: String = ""
     private var lastScanAtMs: Long = 0L
+    private var runtimeSessionId: String = SESSION_ID
+    private var scanMode: String = MODE_GENERIC
 
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -66,6 +73,8 @@ class ScanSessionActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scan_session)
+        runtimeSessionId = intent.getStringExtra(EXTRA_SESSION_ID).orEmpty().ifBlank { SESSION_ID }
+        scanMode = intent.getStringExtra(EXTRA_SCAN_MODE).orEmpty().ifBlank { MODE_GENERIC }
         cameraExecutor = Executors.newSingleThreadExecutor()
 
         statusText = findViewById(R.id.scanStatusText)
@@ -192,10 +201,10 @@ class ScanSessionActivity : AppCompatActivity() {
             }
             return null
         }
-        if (decodedFrame.sessionId != SESSION_ID) {
+        if (decodedFrame.sessionId != runtimeSessionId) {
             Timber.w(
                 "event=scan_frame_rejected reason=session_mismatch expected=%s actual=%s",
-                SESSION_ID,
+                runtimeSessionId,
                 decodedFrame.sessionId
             )
             runOnUiThread {
@@ -243,6 +252,10 @@ class ScanSessionActivity : AppCompatActivity() {
                 else -> getString(R.string.status_scan_inbound_processed, inbound.type, sessionState.name)
             }
             runOnUiThread { statusText.text = message }
+            if (scanMode == MODE_JOIN && sessionState == ScanSessionState.ACK_RECEIVED) {
+                setResult(RESULT_OK, Intent().putExtra(EXTRA_SESSION_ID, runtimeSessionId))
+                finish()
+            }
         } catch (error: Throwable) {
             Timber.e(error, "event=scan_qr_process_failed")
             runOnUiThread {
@@ -253,7 +266,7 @@ class ScanSessionActivity : AppCompatActivity() {
 
     private fun runDemoInboundProcessing() {
         val outboundRaw = bridgeClient.buildQrPayloadFrame(
-            sessionId = SESSION_ID,
+            sessionId = runtimeSessionId,
             frameId = FRAME_ID,
             payload = "demo_round_payload",
             sequence = 1
@@ -283,7 +296,7 @@ class ScanSessionActivity : AppCompatActivity() {
         }
 
         val retryResponse = bridgeClient.sign(
-            sessionId = SESSION_ID,
+            sessionId = runtimeSessionId,
             messageHashHex = "cd".repeat(32),
             signerIndices = listOf(0, 1)
         )

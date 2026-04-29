@@ -13,6 +13,7 @@ class CreatorSessionActivity : AppCompatActivity() {
     }
 
     private lateinit var store: WalletProfileStore
+    private lateinit var inviteCodeText: TextView
     private lateinit var sessionStateText: TextView
     private lateinit var completeButton: MaterialButton
 
@@ -20,13 +21,11 @@ class CreatorSessionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_creator_session)
         store = WalletProfileStore(this)
+        inviteCodeText = findViewById(R.id.inviteCodeText)
         sessionStateText = findViewById(R.id.sessionStateText)
         completeButton = findViewById(R.id.completeCreationButton)
 
-        findViewById<MaterialButton>(R.id.incrementJoinButton).setOnClickListener {
-            val pending = store.getPendingCreation()
-            val nextJoined = (pending.joinedParties + 1).coerceAtMost(pending.parties)
-            store.updatePendingJoinedParties(nextJoined)
+        findViewById<MaterialButton>(R.id.refreshStatusButton).setOnClickListener {
             renderSessionState()
         }
 
@@ -47,12 +46,18 @@ class CreatorSessionActivity : AppCompatActivity() {
         renderSessionState()
     }
 
+    override fun onResume() {
+        super.onResume()
+        renderSessionState()
+    }
+
     /**
      * WHY: Creator must wait for participant quorum before finalizing wallet material,
      * otherwise lifecycle flow is misleading and unsafe for production use.
      */
     private fun renderSessionState() {
         val pending = store.getPendingCreation()
+        inviteCodeText.text = getString(R.string.status_creator_invite_code, pending.sessionId)
         sessionStateText.text = getString(
             R.string.status_creator_session_progress,
             pending.sessionId,

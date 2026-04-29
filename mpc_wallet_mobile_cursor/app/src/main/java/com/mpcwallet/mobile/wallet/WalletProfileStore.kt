@@ -69,6 +69,16 @@ class WalletProfileStore(context: Context) {
         prefs.edit().putInt(KEY_PENDING_JOINED, joinedParties).apply()
     }
 
+    fun incrementPendingJoinedParties(sessionId: String): Int {
+        val pending = getPendingCreation()
+        if (!pending.active || pending.sessionId != sessionId) {
+            return 0
+        }
+        val next = (pending.joinedParties + 1).coerceAtMost(pending.parties)
+        updatePendingJoinedParties(next)
+        return next
+    }
+
     fun getPendingCreation(): PendingCreation {
         return PendingCreation(
             active = prefs.getBoolean(KEY_PENDING_CREATION, false),
