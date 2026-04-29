@@ -1,23 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="?android:colorBackground">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/title_scan_session"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/scanStatusText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:text="@string/status_scan_idle"
         android:textSize="16sp" />
 
-    <androidx.camera.view.PreviewView
-        android:id="@+id/cameraPreview"
+    <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="12dp"
+        app:cardCornerRadius="12dp"
+        app:cardUseCompatPadding="true">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/cameraPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -25,20 +42,20 @@
         android:orientation="horizontal"
         android:layout_marginTop="12dp">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/startScanButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/action_start_scan" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/processDemoFrameButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="@string/action_process_demo_frame" />
+            android:text="@string/action_process_manual_payload" />
     </LinearLayout>
 
 </LinearLayout>

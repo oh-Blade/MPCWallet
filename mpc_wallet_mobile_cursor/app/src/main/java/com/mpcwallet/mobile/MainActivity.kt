@@ -1,8 +1,6 @@
 package com.mpcwallet.mobile
 
 import android.os.Bundle
-import android.widget.Button
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.content.Intent
@@ -27,50 +25,35 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val statusTextView = TextView(this).apply {
-            text = getString(R.string.status_bootstrap)
-            textSize = 18f
-            setPadding(32, 64, 32, 32)
-        }
-        val runDemoButton = Button(this).apply {
-            text = getString(R.string.action_run_demo_round)
-            setOnClickListener {
-                statusTextView.text = getString(R.string.status_demo_running)
+        setContentView(R.layout.activity_main)
+        val statusTextView: TextView = findViewById(R.id.statusTextView)
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.runHealthCheckButton)
+            .setOnClickListener {
+                statusTextView.text = getString(R.string.status_protocol_check_running)
                 Thread {
                     try {
                         val result = runBlocking {
-                            coordinator.runDemoRound(sessionId = "demo_session")
+                            coordinator.runDemoRound(sessionId = "health_check_session")
                         }
                         runOnUiThread {
-                            statusTextView.text = getString(R.string.status_demo_success, result)
+                            statusTextView.text = getString(R.string.status_protocol_check_success, result)
                         }
                     } catch (error: Throwable) {
-                        Timber.e(error, "event=demo_round_failed")
+                        Timber.e(error, "event=protocol_check_failed")
                         runOnUiThread {
                             statusTextView.text = getString(
-                                R.string.status_demo_failed,
+                                R.string.status_protocol_check_failed,
                                 error.message.orEmpty()
                             )
                         }
                     }
                 }.start()
             }
-        }
-        val openScanSessionButton = Button(this).apply {
-            text = getString(R.string.action_open_scan_session)
-            setOnClickListener {
+
+        findViewById<com.google.android.material.button.MaterialButton>(R.id.openScanSessionButton)
+            .setOnClickListener {
                 startActivity(Intent(this@MainActivity, ScanSessionActivity::class.java))
             }
-        }
-
-        val rootLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding(24, 24, 24, 24)
-            addView(runDemoButton)
-            addView(openScanSessionButton)
-            addView(statusTextView)
-        }
-        setContentView(rootLayout)
 
         Timber.i("event=main_activity_opened status=ok")
     }

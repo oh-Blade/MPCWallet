@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MPC Wallet</string>
-    <string name="status_bootstrap">MPC wallet bootstrap initialized</string>
-    <string name="action_run_demo_round">Run MPC Demo Round</string>
+    <string name="title_wallet_console">MPC Wallet Console</string>
+    <string name="subtitle_wallet_console">Enterprise-grade threshold signing control panel</string>
+    <string name="card_title_operations">Operations</string>
+    <string name="card_title_system_status">System Status</string>
+    <string name="status_bootstrap">System initialized. Awaiting operation.</string>
+    <string name="action_run_demo_round">Run Protocol Check</string>
+    <string name="action_run_protocol_check">Run Protocol Check</string>
     <string name="action_open_scan_session">Open Scan Session</string>
     <string name="action_start_scan">Start Camera Scan</string>
-    <string name="action_process_demo_frame">Process Demo Frame</string>
+    <string name="action_process_demo_frame">Process Manual Payload</string>
+    <string name="action_process_manual_payload">Process Manual Payload</string>
+    <string name="status_protocol_check_running">Protocol check running...</string>
+    <string name="status_protocol_check_success">Protocol check completed: %1$s</string>
+    <string name="status_protocol_check_failed">Protocol check failed: %1$s</string>
     <string name="status_demo_running">Demo round running...</string>
     <string name="status_demo_success">Demo completed: %1$s</string>
     <string name="status_demo_failed">Demo failed: %1$s</string>
+    <string name="title_scan_session">Secure Scan Session</string>
     <string name="status_scan_idle">Scan session idle.</string>
     <string name="status_camera_permission_denied">Camera permission denied.</string>
     <string name="status_scan_camera_ready_with_state">Camera is ready for QR scan. State: %1$s</string>
