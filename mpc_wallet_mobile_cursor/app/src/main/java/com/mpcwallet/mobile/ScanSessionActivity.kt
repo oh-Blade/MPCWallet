@@ -103,7 +103,7 @@ class ScanSessionActivity : AppCompatActivity() {
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
             val preview = androidx.camera.core.Preview.Builder().build()
-            preview.surfaceProvider = previewView.surfaceProvider
+            preview.setSurfaceProvider(previewView.surfaceProvider)
             val analysis = ImageAnalysis.Builder().build().apply {
                 setAnalyzer(cameraExecutor) { imageProxy ->
                     tryDecodeQr(imageProxy)
