@@ -19,4 +19,5 @@
     <string name="status_scan_qr_detected">QR payload detected, processing...</string>
     <string name="status_scan_inbound_processed">Inbound frame type: %1$s; State: %2$s</string>
     <string name="status_scan_inbound_failed">Inbound processing failed: %1$s</string>
+    <string name="status_scan_invalid_frame">Frame rejected: %1$s</string>
 </resources>

@@ -18,7 +18,10 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import com.mpcwallet.mobile.mpc.bridge.DemoGoBridgeGateway
+import com.mpcwallet.mobile.mpc.bridge.MobileBridgeContract
 import com.mpcwallet.mobile.mpc.bridge.MpcBridgeClient
+import com.mpcwallet.mobile.mpc.bridge.QrWireFramePayload
+import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -37,9 +40,11 @@ class ScanSessionActivity : AppCompatActivity() {
         private const val FRAME_ID: String = "scan_demo_1"
         private const val ACK_TIMEOUT_MS: Long = 12_000L
         private const val SCAN_THROTTLE_MS: Long = 1_000L
+        private const val FRAME_FRESHNESS_WINDOW_MS: Long = 60_000L
     }
 
     private val bridgeClient = MpcBridgeClient(DemoGoBridgeGateway())
+    private val strictJson = Json { ignoreUnknownKeys = false }
 
     private lateinit var statusText: TextView
     private lateinit var previewView: PreviewView
@@ -154,7 +159,68 @@ class ScanSessionActivity : AppCompatActivity() {
         runOnUiThread {
             statusText.text = getString(R.string.status_scan_qr_detected)
         }
+        val validated = validateInboundFrameOrNull(rawFrame, nowMs)
+        if (validated == null) {
+            return
+        }
         processInboundFromScan(rawFrame)
+    }
+
+    /**
+     * WHY: Scanner input is an untrusted channel; strict frame validation blocks malformed
+     * or cross-session payloads before they reach MPC state transitions.
+     */
+    private fun validateInboundFrameOrNull(rawFrame: String, nowMs: Long): QrWireFramePayload? {
+        val decodedFrame = try {
+            strictJson.decodeFromString(QrWireFramePayload.serializer(), rawFrame)
+        } catch (error: Throwable) {
+            Timber.w(error, "event=scan_frame_rejected reason=schema_invalid")
+            runOnUiThread {
+                statusText.text = getString(R.string.status_scan_invalid_frame, "schema_invalid")
+            }
+            return null
+        }
+
+        if (decodedFrame.protocolVersion != MobileBridgeContract.QR_PROTOCOL_VERSION) {
+            Timber.w(
+                "event=scan_frame_rejected reason=protocol_mismatch expected=%d actual=%d",
+                MobileBridgeContract.QR_PROTOCOL_VERSION,
+                decodedFrame.protocolVersion
+            )
+            runOnUiThread {
+                statusText.text = getString(R.string.status_scan_invalid_frame, "protocol_mismatch")
+            }
+            return null
+        }
+        if (decodedFrame.sessionId != SESSION_ID) {
+            Timber.w(
+                "event=scan_frame_rejected reason=session_mismatch expected=%s actual=%s",
+                SESSION_ID,
+                decodedFrame.sessionId
+            )
+            runOnUiThread {
+                statusText.text = getString(R.string.status_scan_invalid_frame, "session_mismatch")
+            }
+            return null
+        }
+        if (decodedFrame.frameId.isBlank()) {
+            Timber.w("event=scan_frame_rejected reason=frame_id_empty")
+            runOnUiThread {
+                statusText.text = getString(R.string.status_scan_invalid_frame, "frame_id_empty")
+            }
+            return null
+        }
+        if (kotlin.math.abs(nowMs - decodedFrame.createdAtMs) > FRAME_FRESHNESS_WINDOW_MS) {
+            Timber.w(
+                "event=scan_frame_rejected reason=frame_stale frame_age_ms=%d",
+                nowMs - decodedFrame.createdAtMs
+            )
+            runOnUiThread {
+                statusText.text = getString(R.string.status_scan_invalid_frame, "frame_stale")
+            }
+            return null
+        }
+        return decodedFrame
     }
 
     private fun processInboundFromScan(rawFrame: String) {
