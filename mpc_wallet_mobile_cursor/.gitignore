@@ -1,0 +1,12 @@
+/.gradle/
+/build/
+/app/build/
+/local.properties
+*.iml
+/.idea/
+/mpc-engine/.gopath/
+/mpc-engine/.gomodcache/
+/mpc-engine/.gocache/
+/mpc-engine/*.aar
+/mpc-engine/*.xcframework
+/mpc-engine/bindings/
