@@ -66,6 +66,9 @@ class MpcBridgeClient(
 interface GoBridgeGateway {
     fun startKeygenMobile(raw: String): String
     fun signTransactionMobile(raw: String): String
+    fun buildQrPayloadFrameMobile(raw: String): String
+    fun handleInboundQrFrameMobile(raw: String): String
+    fun nextQrRetryMobile(raw: String): String
 }
 
 class LocalGoBridgeGateway : GoBridgeGateway {
@@ -76,6 +79,18 @@ class LocalGoBridgeGateway : GoBridgeGateway {
     override fun signTransactionMobile(raw: String): String {
         return NativeBridgeRuntime.sign(raw)
     }
+
+    override fun buildQrPayloadFrameMobile(raw: String): String {
+        return NativeBridgeRuntime.buildQrPayloadFrame(raw)
+    }
+
+    override fun handleInboundQrFrameMobile(raw: String): String {
+        return NativeBridgeRuntime.handleInboundQrFrame(raw)
+    }
+
+    override fun nextQrRetryMobile(raw: String): String {
+        return NativeBridgeRuntime.nextQrRetry(raw)
+    }
 }
 
 object NativeBridgeRuntime {
@@ -85,6 +100,18 @@ object NativeBridgeRuntime {
     }
 
     fun sign(raw: String): String {
+        error("Native bridge not linked yet. Bind gomobile output and wire runtime loader.")
+    }
+
+    fun buildQrPayloadFrame(raw: String): String {
+        error("Native bridge not linked yet. Bind gomobile output and wire runtime loader.")
+    }
+
+    fun handleInboundQrFrame(raw: String): String {
+        error("Native bridge not linked yet. Bind gomobile output and wire runtime loader.")
+    }
+
+    fun nextQrRetry(raw: String): String {
         error("Native bridge not linked yet. Bind gomobile output and wire runtime loader.")
     }
 }

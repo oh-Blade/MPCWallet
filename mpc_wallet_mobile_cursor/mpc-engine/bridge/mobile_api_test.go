@@ -34,3 +34,50 @@ func TestStartKeygenMobileAndSessionInfo(t *testing.T) {
 		t.Fatalf("unexpected session info error: %s", infoResult.Error)
 	}
 }
+
+func TestQRMobileApis(t *testing.T) {
+	buildReq := BuildQRFrameRequest{
+		SessionID: "qr_mobile_session",
+		FrameID:   "qr_mobile_frame_1",
+		Payload:   "payload",
+		Sequence:  1,
+	}
+	buildReqRaw, err := json.Marshal(buildReq)
+	if err != nil {
+		t.Fatalf("marshal build request failed: %v", err)
+	}
+	buildResultRaw := BuildQRPayloadFrameMobile(string(buildReqRaw))
+	var buildResult MobileResult
+	if err := json.Unmarshal([]byte(buildResultRaw), &buildResult); err != nil {
+		t.Fatalf("unmarshal build result failed: %v", err)
+	}
+	if !buildResult.Success || buildResult.Data == "" {
+		t.Fatalf("unexpected build result: %+v", buildResult)
+	}
+
+	handleReqRaw, err := json.Marshal(HandleQRFrameRequest{RawFrame: buildResult.Data})
+	if err != nil {
+		t.Fatalf("marshal handle request failed: %v", err)
+	}
+	handleResultRaw := HandleInboundQRFrameMobile(string(handleReqRaw))
+	var handleResult MobileResult
+	if err := json.Unmarshal([]byte(handleResultRaw), &handleResult); err != nil {
+		t.Fatalf("unmarshal handle result failed: %v", err)
+	}
+	if !handleResult.Success || handleResult.Data == "" {
+		t.Fatalf("unexpected handle result: %+v", handleResult)
+	}
+
+	retryReqRaw, err := json.Marshal(NextRetryRequest{FrameID: buildReq.FrameID})
+	if err != nil {
+		t.Fatalf("marshal retry request failed: %v", err)
+	}
+	retryResultRaw := NextQRRetryMobile(string(retryReqRaw))
+	var retryResult MobileResult
+	if err := json.Unmarshal([]byte(retryResultRaw), &retryResult); err != nil {
+		t.Fatalf("unmarshal retry result failed: %v", err)
+	}
+	if !retryResult.Success {
+		t.Fatalf("unexpected retry result: %+v", retryResult)
+	}
+}

@@ -3,6 +3,7 @@ package bridge
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type MobileResult struct {
@@ -19,6 +20,23 @@ type SessionInfoResponse struct {
 	PublicKeyHex string `json:"publicKeyHex"`
 }
 
+type BuildQRFrameRequest struct {
+	SessionID string `json:"sessionId"`
+	FrameID   string `json:"frameId"`
+	Payload   string `json:"payload"`
+	Sequence  int    `json:"sequence"`
+}
+
+type HandleQRFrameRequest struct {
+	RawFrame string `json:"rawFrame"`
+}
+
+type NextRetryRequest struct {
+	FrameID string `json:"frameId"`
+}
+
+var qrProtocol = NewQRProtocol()
+
 // StartKeygenMobile WHY: gomobile/JNI bindings consume string-only interfaces reliably across
 // Kotlin and Java call-sites, while preserving structured result payloads.
 func StartKeygenMobile(raw string) string {
@@ -29,6 +47,37 @@ func StartKeygenMobile(raw string) string {
 // so transport and UI modules can handle success/error in one parsing branch.
 func SignTransactionMobile(raw string) string {
 	return wrapMobileResult(SignTransaction(raw))
+}
+
+func BuildQRPayloadFrameMobile(raw string) string {
+	var req BuildQRFrameRequest
+	if err := json.Unmarshal([]byte(raw), &req); err != nil {
+		return encodeMobileResult(MobileResult{Success: false, Error: fmt.Sprintf("invalid request json: %v", err)})
+	}
+	data, err := qrProtocol.BuildPayloadFrame(req.SessionID, req.FrameID, req.Payload, req.Sequence)
+	return wrapMobileResult(data, err)
+}
+
+func HandleInboundQRFrameMobile(raw string) string {
+	var req HandleQRFrameRequest
+	if err := json.Unmarshal([]byte(raw), &req); err != nil {
+		return encodeMobileResult(MobileResult{Success: false, Error: fmt.Sprintf("invalid request json: %v", err)})
+	}
+	result, err := qrProtocol.HandleInboundFrame(req.RawFrame, time.Now().UTC())
+	if err != nil {
+		return encodeMobileResult(MobileResult{Success: false, Error: err.Error()})
+	}
+	data, marshalErr := marshalJSON(result)
+	return wrapMobileResult(data, marshalErr)
+}
+
+func NextQRRetryMobile(raw string) string {
+	var req NextRetryRequest
+	if err := json.Unmarshal([]byte(raw), &req); err != nil {
+		return encodeMobileResult(MobileResult{Success: false, Error: fmt.Sprintf("invalid request json: %v", err)})
+	}
+	data, marshalErr := marshalJSON(map[string]bool{"shouldRetry": qrProtocol.NextRetry(req.FrameID)})
+	return wrapMobileResult(data, marshalErr)
 }
 
 func GetSessionInfoMobile(sessionID string) string {
