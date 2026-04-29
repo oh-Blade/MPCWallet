@@ -1,0 +1,19 @@
+{
+  "serverUrl": "http://10.20.1.124:3004",
+  "username": "hounaikuo",
+  "syncedAt": "2026-04-29T06:11:09.601Z",
+  "skills": [
+    {
+      "id": 1,
+      "name": "basecheck",
+      "version": "1.0.3",
+      "relativePath": "00-basecheck/SKILL.md"
+    },
+    {
+      "id": 3,
+      "name": "git-commit-convention",
+      "version": "1.0.1",
+      "relativePath": "git-commit-convention/SKILL.md"
+    }
+  ]
+}
