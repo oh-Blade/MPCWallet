@@ -123,13 +123,11 @@ function deriveChildPublicKey(parentPubKey, chainCode, index) {
   indexBuf.writeUInt32BE(index, 0);
   const data = Buffer.concat([parentPubKey, indexBuf]);
 
-  // HMAC-SHA512（此处用两次 SHA256 模拟，生产中用 @noble/hashes/sha512 的 hmac）
-  // 左半部分作为 tweak，右半部分作为子链码
-  const hmacLeft = hmac(sha256, chainCode, Buffer.concat([data, Buffer.from([0])]));
-  const hmacRight = hmac(sha256, chainCode, Buffer.concat([data, Buffer.from([1])]));
+  // 标准 BIP-32: I = HMAC-SHA512(key=chaincode, data=pubkey || index)
+  const I = hmac(sha512, chainCode, data);
 
-  const IL = Buffer.from(hmacLeft);    // 32 bytes，密钥调整量
-  const childChainCode = Buffer.from(hmacRight); // 32 bytes，子链码
+  const IL = Buffer.from(I.subarray(0, 32));           // 左 32 bytes，密钥调整量
+  const childChainCode = Buffer.from(I.subarray(32, 64)); // 右 32 bytes，子链码
 
   // tweak = IL 作为标量
   const tweak = bytesToBigInt(IL) % N;
