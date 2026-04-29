@@ -50,3 +50,8 @@ data class SignResponsePayload(
     @SerialName("rHex") val rHex: String,
     @SerialName("sHex") val sHex: String
 )
+
+@Serializable
+data class NextRetryRequest(
+    @SerialName("frameId") val frameId: String
+)

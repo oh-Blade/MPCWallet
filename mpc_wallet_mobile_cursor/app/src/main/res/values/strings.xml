@@ -2,4 +2,8 @@
 <resources>
     <string name="app_name">MPC Wallet</string>
     <string name="status_bootstrap">MPC wallet bootstrap initialized</string>
+    <string name="action_run_demo_round">Run MPC Demo Round</string>
+    <string name="status_demo_running">Demo round running...</string>
+    <string name="status_demo_success">Demo completed: %1$s</string>
+    <string name="status_demo_failed">Demo failed: %1$s</string>
 </resources>
