@@ -11,6 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar">
         <activity
+            android:name=".CreatorSessionActivity"
+            android:exported="false" />
+        <activity
             android:name=".WalletHomeActivity"
             android:exported="false" />
         <activity

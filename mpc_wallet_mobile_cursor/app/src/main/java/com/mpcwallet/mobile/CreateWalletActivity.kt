@@ -29,8 +29,17 @@ class CreateWalletActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.generateInviteButton).setOnClickListener {
             val threshold = thresholdSpinner.selectedItem.toString().toInt()
             val parties = partiesSpinner.selectedItem.toString().toInt()
-            WalletProfileStore(this).saveWalletProfile(threshold, parties, mode = "creator")
-            startActivity(Intent(this, WalletHomeActivity::class.java))
+            val sessionId = "sess_${System.currentTimeMillis()}"
+            WalletProfileStore(this).savePendingCreation(
+                sessionId = sessionId,
+                threshold = threshold,
+                parties = parties,
+                joinedParties = 1
+            )
+            val intent = Intent(this, CreatorSessionActivity::class.java).apply {
+                putExtra(CreatorSessionActivity.EXTRA_SESSION_ID, sessionId)
+            }
+            startActivity(intent)
             finish()
         }
     }

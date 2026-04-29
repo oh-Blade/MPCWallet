@@ -11,6 +11,11 @@ class WalletProfileStore(context: Context) {
         private const val KEY_THRESHOLD = "threshold"
         private const val KEY_PARTIES = "parties"
         private const val KEY_WALLET_MODE = "wallet_mode"
+        private const val KEY_PENDING_CREATION = "pending_creation"
+        private const val KEY_PENDING_SESSION_ID = "pending_session_id"
+        private const val KEY_PENDING_THRESHOLD = "pending_threshold"
+        private const val KEY_PENDING_PARTIES = "pending_parties"
+        private const val KEY_PENDING_JOINED = "pending_joined"
     }
 
     data class WalletProfile(
@@ -18,6 +23,14 @@ class WalletProfileStore(context: Context) {
         val threshold: Int,
         val parties: Int,
         val mode: String
+    )
+
+    data class PendingCreation(
+        val active: Boolean,
+        val sessionId: String,
+        val threshold: Int,
+        val parties: Int,
+        val joinedParties: Int
     )
 
     /**
@@ -40,5 +53,39 @@ class WalletProfileStore(context: Context) {
             parties = prefs.getInt(KEY_PARTIES, 0),
             mode = prefs.getString(KEY_WALLET_MODE, "").orEmpty()
         )
+    }
+
+    fun savePendingCreation(sessionId: String, threshold: Int, parties: Int, joinedParties: Int) {
+        prefs.edit()
+            .putBoolean(KEY_PENDING_CREATION, true)
+            .putString(KEY_PENDING_SESSION_ID, sessionId)
+            .putInt(KEY_PENDING_THRESHOLD, threshold)
+            .putInt(KEY_PENDING_PARTIES, parties)
+            .putInt(KEY_PENDING_JOINED, joinedParties)
+            .apply()
+    }
+
+    fun updatePendingJoinedParties(joinedParties: Int) {
+        prefs.edit().putInt(KEY_PENDING_JOINED, joinedParties).apply()
+    }
+
+    fun getPendingCreation(): PendingCreation {
+        return PendingCreation(
+            active = prefs.getBoolean(KEY_PENDING_CREATION, false),
+            sessionId = prefs.getString(KEY_PENDING_SESSION_ID, "").orEmpty(),
+            threshold = prefs.getInt(KEY_PENDING_THRESHOLD, 0),
+            parties = prefs.getInt(KEY_PENDING_PARTIES, 0),
+            joinedParties = prefs.getInt(KEY_PENDING_JOINED, 0)
+        )
+    }
+
+    fun clearPendingCreation() {
+        prefs.edit()
+            .remove(KEY_PENDING_CREATION)
+            .remove(KEY_PENDING_SESSION_ID)
+            .remove(KEY_PENDING_THRESHOLD)
+            .remove(KEY_PENDING_PARTIES)
+            .remove(KEY_PENDING_JOINED)
+            .apply()
     }
 }

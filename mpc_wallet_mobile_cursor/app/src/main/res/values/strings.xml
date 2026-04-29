@@ -48,4 +48,8 @@
     <string name="action_complete_restore">Complete Restore</string>
     <string name="title_wallet_home">Wallet Home</string>
     <string name="status_wallet_profile">Mode: %1$s | Threshold: %2$d/%3$d</string>
+    <string name="title_creator_session">Creator Session</string>
+    <string name="action_mark_party_joined">Mark Party Joined</string>
+    <string name="action_complete_wallet_creation">Complete Wallet Creation</string>
+    <string name="status_creator_session_progress">Session: %1$s\nJoined: %2$d/%3$d\nThreshold: %4$d</string>
 </resources>
