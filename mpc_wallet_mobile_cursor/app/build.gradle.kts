@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.mpcwallet.mobile"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.mpcwallet.mobile"
@@ -38,6 +38,14 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    packaging {
+        resources {
+            // WHY: web3j transitive tuweni artifacts ship duplicated DISCLAIMER resource entries.
+            // Excluding this non-runtime metadata avoids mergeDebugJavaResource conflicts.
+            excludes += "META-INF/DISCLAIMER"
+        }
+    }
 }
 
 dependencies {
@@ -45,7 +53,7 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Ethereum integration layer
     implementation("org.web3j:core:4.12.2")
